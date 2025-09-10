@@ -32,7 +32,7 @@ final class ProductAdminController extends AbstractController
         if (!empty($images)) {
           foreach ($images as $image) {
             $newFilename = uniqid().'.'.$image->getExtension();
-            $image->move($this->getParameter('images_directory', $newFilename));
+            $image->move($this->getParameter('images_directory'), $newFilename);
             $picture = new Picture();
             $picture->setFilename($newFilename);
             $picture->setProduct($product);
