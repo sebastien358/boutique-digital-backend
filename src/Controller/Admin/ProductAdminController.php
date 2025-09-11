@@ -50,6 +50,29 @@ final class ProductAdminController extends AbstractController
     }
   }
 
+  #[Route('/product/delete/{id}', methods: ['DELETE'])]
+  function delete(int $id): JsonResponse
+  {
+    try {
+      $product = $this->productRepository->find($id);
+      if (!$product) {
+        return new JsonResponse(['message' => 'Produit introuvable']);
+      }
+      foreach ($product->getPictures() as $picture) {
+        $fileName = $this->getParameter('images_directory') . '/' . $picture->getFilename();
+        if (file_exists($fileName)) {
+          unlink($fileName);
+        }
+        $this->entityManager->remove($picture);
+      }
+      $this->entityManager->remove($product);
+      $this->entityManager->flush();
+      return new JsonResponse(['message' => 'Le produit a bien été supprimé'], 200);
+    } catch(\Exception $e) {
+      return new JsonResponse(['error' => $e->getMessage()], 500);
+    }
+  }
+
   #[Route('/product/new')]
   public function newProduct(Request $request): JsonResponse
   {
