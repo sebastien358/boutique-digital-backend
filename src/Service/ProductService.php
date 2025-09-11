@@ -10,8 +10,9 @@ class ProductService
       $dataProducts = $normalizer->normalize($products, 'json', [
         'groups' => ['products', 'pictures'], 
         'circular_reference_handler' => function ($object) {
-        return $object->getId();
-      }]);
+          return $object->getId();
+          }
+        ]);
 
       foreach ($dataProducts as &$product) {
         if (is_array($product['pictures'])) {
@@ -28,8 +29,15 @@ class ProductService
       $dataProduct = $normalizer->normalize($products, 'json', [
         'groups' => ['product'], 
         'circular_reference_handler' => function ($object) {
-        return $object->getId();
-      }]);
+          return $object->getId();
+        }
+      ]);
+
+      foreach ($products->getPicture() as $picture) {
+        if (isset($picture['filename'])) {
+          $picture['url'] = $request->getSchemeAndHttpHost() . '/images/' . $picture['filename'];
+        }
+      }
 
       return $dataProduct;
     } 
