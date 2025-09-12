@@ -1,29 +1,22 @@
-<?php
+<?php 
 
 namespace App\Entity;
 
-use App\Repository\CartRepository;
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: CartRepository::class)]
+#[ORM\Entity]
+#[ORM\Table(name: 'carts')]
 class Cart
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'integer')]
+    private $id;
 
-    #[ORM\ManyToOne(inversedBy: 'carts')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $user = null;
-
-    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart')]
-    private Collection $items;
-
-    #[ORM\Column(type: 'float')]
-    private ?float $total = null;
+    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'])]
+    private $items;
 
     public function __construct()
     {
@@ -35,49 +28,31 @@ class Cart
         return $this->id;
     }
 
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
-        return $this;
-    }
-
     public function getItems(): Collection
     {
         return $this->items;
     }
 
-    public function addItem(CartItem $item): static
+    public function addItem(CartItem $item): self
     {
         if (!$this->items->contains($item)) {
-            $this->items->add($item);
+            $this->items[] = $item;
             $item->setCart($this);
         }
+
         return $this;
     }
 
-    public function removeItem(CartItem $item): static
+    public function removeItem(CartItem $item): self
     {
-        if ($this->items->removeElement($item)) {
+        if ($this->items->contains($item)) {
+            $this->items->removeElement($item);
+            // set the owning side to null (unless already changed)
             if ($item->getCart() === $this) {
                 $item->setCart(null);
             }
         }
-        return $this;
-    }
 
-    public function getTotal(): ?float
-    {
-        return $this->total;
-    }
-
-    public function setTotal(float $total): static
-    {
-        $this->total = $total;
         return $this;
     }
 }

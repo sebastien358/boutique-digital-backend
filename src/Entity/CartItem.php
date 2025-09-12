@@ -2,30 +2,32 @@
 
 namespace App\Entity;
 
-use App\Repository\CartItemRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: CartItemRepository::class)]
+#[ORM\Entity]
+#[ORM\Table(name: 'cart_items')]
 class CartItem
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'integer')]
+    private $id;
 
-    #[ORM\ManyToOne(inversedBy: 'items')]
+    #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'items')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Cart $cart = null;
+    private $cart;
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Product $product = null;
+    #[ORM\Column(type: 'integer')]
+    private $productId;
 
-    #[ORM\Column]
-    private ?int $quantity = null;
+    #[ORM\Column(type: 'string')]
+    private $title;
 
     #[ORM\Column(type: 'float')]
-    private ?float $price = null;
+    private $price;
+
+    #[ORM\Column(type: 'integer')]
+    private $quantity;
 
     public function getId(): ?int
     {
@@ -37,31 +39,34 @@ class CartItem
         return $this->cart;
     }
 
-    public function setCart(?Cart $cart): static
+    public function setCart(?Cart $cart): self
     {
         $this->cart = $cart;
+
         return $this;
     }
 
-    public function getProduct(): ?Product
+    public function getProductId(): ?int
     {
-        return $this->product;
+        return $this->productId;
     }
 
-    public function setProduct(?Product $product): static
+    public function setProductId(int $productId): self
     {
-        $this->product = $product;
+        $this->productId = $productId;
+
         return $this;
     }
 
-    public function getQuantity(): ?int
+    public function getTitle(): ?string
     {
-        return $this->quantity;
+        return $this->title;
     }
 
-    public function setQuantity(int $quantity): static
+    public function setTitle(string $title): self
     {
-        $this->quantity = $quantity;
+        $this->title = $title;
+
         return $this;
     }
 
@@ -70,10 +75,22 @@ class CartItem
         return $this->price;
     }
 
-    public function setPrice(float $price): static
+    public function setPrice(float $price): self
     {
         $this->price = $price;
+
+        return $this;
+    }
+
+    public function getQuantity(): ?int
+    {
+        return $this->quantity;
+    }
+
+    public function setQuantity(int $quantity): self
+    {
+        $this->quantity = $quantity;
+
         return $this;
     }
 }
-
