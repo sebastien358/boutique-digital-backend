@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Test\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -33,7 +34,6 @@ final class RegisterController extends AbstractController
             } else {
                 return new JsonResponse($this->getErrorMessages($form), 400);
             }
-            dd($data);
         } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
