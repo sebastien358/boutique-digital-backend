@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'cart_items')]
@@ -11,6 +12,7 @@ class CartItem
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups('carts')]
     private $id;
 
     #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'items')]
@@ -18,15 +20,19 @@ class CartItem
     private $cart;
 
     #[ORM\Column(type: 'integer')]
+    #[Groups('carts')]
     private $productId;
 
     #[ORM\Column(type: 'string')]
+     #[Groups('carts')]
     private $title;
 
     #[ORM\Column(type: 'float')]
+     #[Groups('carts')]
     private $price;
 
     #[ORM\Column(type: 'integer')]
+     #[Groups('carts')]
     private $quantity;
 
     public function getId(): ?int
