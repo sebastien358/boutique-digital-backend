@@ -29,9 +29,6 @@ final class CartController extends AbstractController
     {
         try {
             $carts = $this->cartItemRepository->findAll();
-            if (!$carts) {
-                return new JsonResponse(['message' => 'Éléments du panier introuvables'], 404);
-            }
             $dataCarts = $normalizer->normalize($carts, 'json', ['groups' => 'carts']);
             return new JsonResponse($dataCarts);
         } catch(\Exception $e) {
@@ -65,7 +62,6 @@ final class CartController extends AbstractController
                 $cartItem->setQuantity($item['quantity']);
                 $this->entityManager->persist($cartItem);
             }
-
             $this->entityManager->flush();
         }
 
@@ -77,10 +73,8 @@ final class CartController extends AbstractController
     {
         try {
             $itemExisting = $this->cartItemRepository->findOneBy(['id' => $id]);
-            if (!$itemExisting) {
-                return new JsonResponse(['message', 'Produit est inexistant'], 404);
-            } elseif($itemExisting->getQuantity() > 1) {
-                 $itemExisting->setQuantity($itemExisting->getQuantity() - 1);
+            if ($itemExisting->getQuantity() > 1) {
+                $itemExisting->setQuantity($itemExisting->getQuantity() - 1);
                 $this->entityManager->persist($itemExisting);
             } else {
                 $this->entityManager->remove($itemExisting);
