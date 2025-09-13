@@ -68,7 +68,7 @@ final class CartController extends AbstractController
         return new JsonResponse('Données enregistrées avec succès', 201);
     }
 
-    #[Route('/api/cart/delete/{id}', methods: ['DELETE'])]
+    #[Route('/api/delete/cart/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
         try {
