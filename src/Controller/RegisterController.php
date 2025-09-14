@@ -23,7 +23,7 @@ final class RegisterController extends AbstractController
             $data = json_decode($request->getContent(), true);
             $form->submit($data);
             if ($form->isValid() && $form->isSubmitted()) {
-                $user->setRoles(['ROLE_USER']);
+                $user->setRoles(['ROLE_ADMIN']);
                 $user->setPassword($userPassword->hashPassword(
                     $user,
                     $form->get('password')->getData()

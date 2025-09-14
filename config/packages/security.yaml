@@ -1,5 +1,8 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    role_hierarchy:
+        ROLE_ADMIN: [ ROLE_USER ]
+        ROLE_USER: [ ROLE_USER ]
+        # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
@@ -19,13 +22,16 @@ security:
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
         api:
-            pattern: ^/admin
+            pattern: ^/api
             stateless: true
             jwt: ~
 
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/admin, roles: ROLE_USER }
+        - { path: ^/admin, roles: [ROLE_ADMIN, IS_AUTHENTICATED_FULLY] }
+        - { path: ^/panier, roles: [ROLE_USER, IS_AUTHENTICATED_FULLY] }
+        - { path: ^/commande, roles: [ROLE_USER, IS_AUTHENTICATED_FULLY] }
+        - { path: ^/api/user/me, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/, roles: PUBLIC_ACCESS }
 
 when@test:

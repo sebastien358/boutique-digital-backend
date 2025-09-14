@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Controller\Admin;
 
@@ -18,16 +18,22 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-#[IsGranted('ROLE_USER')]
+#[IsGranted('ROLE_ADMIN')]
 #[Route('/admin')]
 final class ProductAdminController extends AbstractController
 {
+    private $productRepository;
+    private $entityManager;
+    private  $productService;
+    private $fileUploader;
   public function __construct(
-    private ProductRepository $productRepository,
-    private EntityManagerInterface $entityManager,
-    private ProductService $productService,
-    private fileUploader $fileUploader
-  ){ 
+      ProductRepository $productRepository, EntityManagerInterface $entityManager,
+      ProductService $productService, fileUploader $fileUploader
+  ){
+      $this->productRepository = $productRepository;
+      $this->entityManager = $entityManager;
+      $this->productService = $productService;
+      $this->fileUploader = $fileUploader;
   }
 
   #[Route('/products', methods: ['GET'])]
@@ -37,10 +43,10 @@ final class ProductAdminController extends AbstractController
       $page = $request->query->getInt('page', 1);
       $limit = $request->query->getInt('limit', 20);
       $products = $this->productRepository->findAllProducts($page, $limit);
-      $total = $this->productRepository->countAllProducts();
       if (!$products) {
-        return new JsonResponse(['message' => 'Les produits sont introuvables']);
+          return new JsonResponse(['message' => 'Les produits sont introuvables']);
       }
+      $total = $this->productRepository->countAllProducts();
       $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
       return new JsonResponse([
         'products' => $dataProducts,
@@ -56,9 +62,11 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $products = $this->productRepository->find($id);
+
       if (!$products) {
         return new JsonResponse(['message' => 'Les produits sont introuvables']);
       }
+
       $dataProduct = $this->productService->getProductData($products, $request, $normalizer);
       return new JsonResponse($dataProduct);
     } catch(\Exception $e) {
@@ -71,23 +79,27 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $product = new Product();
+
       $form = $this->createForm(ProductType::class, $product);
       $form->submit($request->request->all());
+
       if ($form->isValid() && $form->isSubmitted()) {
         $category = $form->get('category')->getData();
         $product->setCategory($category);
+
         $images = $request->files->get('filename', []);
         if (!empty($images)) {
-          foreach ($images as $image) {
-            $newFilename = $this->fileUploader->upload($image);
-            $picture = new Picture();
-            $picture->setFilename($newFilename);
-            $picture->setProduct($product);
-            $this->entityManager->persist($picture);
-          }
-        } 
+            foreach ($images as $image) {
+                $newFilename = $this->fileUploader->upload($image);
+                $picture = new Picture();
+                $picture->setFilename($newFilename);
+                $picture->setProduct($product);
+                $this->entityManager->persist($picture);
+            }
+        }
         $this->entityManager->persist($product);
         $this->entityManager->flush();
+
         return new JsonResponse(['message' => 'Produit ajouté avec succès'], 201);
       } else {
         return new JsonResponse($this->getErrorMessages($form), 400);
