@@ -18,8 +18,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-#[IsGranted('ROLE_ADMIN')]
-#[Route('/admin')]
+#[Route('/admin')]//
+//#[IsGranted('ROLE_ADMIN')]
 final class ProductAdminController extends AbstractController
 {
     private $productRepository;
@@ -62,11 +62,9 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $products = $this->productRepository->find($id);
-
       if (!$products) {
         return new JsonResponse(['message' => 'Les produits sont introuvables']);
       }
-
       $dataProduct = $this->productService->getProductData($products, $request, $normalizer);
       return new JsonResponse($dataProduct);
     } catch(\Exception $e) {
@@ -116,21 +114,26 @@ final class ProductAdminController extends AbstractController
       $product = $this->productRepository->find($id);
       $form = $this->createForm(ProductType::class, $product);
       $form->submit($request->request->all());
+
       if ($form->isValid() && $form->isSubmitted()) {
         $category = $form->get('category')->getData();
         $product->setCategory($category);
+
         $images = $request->files->get('filename', []);
         if (!empty($images)) {
           foreach ($images as $image) {
             $newFilename = $this->fileUploader->upload($image);
+
             $picture = new Picture();
             $picture->setFilename($newFilename);
             $product->addPicture($picture);
             $this->entityManager->persist($picture);
           }
         }
+
         $this->entityManager->flush();
         return new JsonResponse(['message' => 'Produit modifié avec succès'], 201);
+
       } else {
         return new JsonResponse($this->getErrorMessages($form), 400);
       }
@@ -181,8 +184,10 @@ final class ProductAdminController extends AbstractController
       if (file_exists($filename)) {
         unlink($filename);
       }
+
       $product->removePicture($picture);
       $this->entityManager->remove($picture);
+
       $this->entityManager->flush();
       return new JsonResponse(['message' => 'L\'image a bien été supprimée'], 200);
     } catch(\Exception $e) {
