@@ -18,8 +18,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-#[Route('/admin')]//
-//#[IsGranted('ROLE_ADMIN')]
+#[Route('/api/admin')]
+#[IsGranted('ROLE_ADMIN')]
 final class ProductAdminController extends AbstractController
 {
     private $productRepository;
@@ -42,16 +42,20 @@ final class ProductAdminController extends AbstractController
     try {
       $page = $request->query->getInt('page', 1);
       $limit = $request->query->getInt('limit', 20);
+
       $products = $this->productRepository->findAllProducts($page, $limit);
       if (!$products) {
           return new JsonResponse(['message' => 'Les produits sont introuvables']);
       }
+
       $total = $this->productRepository->countAllProducts();
       $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
+
       return new JsonResponse([
         'products' => $dataProducts,
         'total' => $total
       ]);
+
     } catch(\Exception $e) {
       return new JsonResponse(['error' => $e->getMessage()], 500);
     }
@@ -62,11 +66,14 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $products = $this->productRepository->find($id);
+
       if (!$products) {
         return new JsonResponse(['message' => 'Les produits sont introuvables']);
       }
+
       $dataProduct = $this->productService->getProductData($products, $request, $normalizer);
       return new JsonResponse($dataProduct);
+
     } catch(\Exception $e) {
       return new JsonResponse(['error' => $e->getMessage()], 500);
     }
@@ -89,12 +96,14 @@ final class ProductAdminController extends AbstractController
         if (!empty($images)) {
             foreach ($images as $image) {
                 $newFilename = $this->fileUploader->upload($image);
+
                 $picture = new Picture();
                 $picture->setFilename($newFilename);
                 $picture->setProduct($product);
                 $this->entityManager->persist($picture);
             }
         }
+
         $this->entityManager->persist($product);
         $this->entityManager->flush();
 
@@ -112,6 +121,7 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $product = $this->productRepository->find($id);
+
       $form = $this->createForm(ProductType::class, $product);
       $form->submit($request->request->all());
 
@@ -147,9 +157,11 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $product = $this->productRepository->find($id);
+
       if (!$product) {
         return new JsonResponse(['message' => 'Produit introuvable']);
       }
+
       foreach ($product->getPictures() as $picture) {
         $fileName = $this->getParameter('images_directory') . '/' . $picture->getFilename();
         if (file_exists($fileName)) {
@@ -157,8 +169,10 @@ final class ProductAdminController extends AbstractController
         }
         $this->entityManager->remove($picture);
       }
+
       $this->entityManager->remove($product);
       $this->entityManager->flush();
+
       return new JsonResponse(['message' => 'Le produit a bien été supprimé'], 200);
     } catch(\Exception $e) {
       return new JsonResponse(['error' => $e->getMessage()], 500);
@@ -173,13 +187,16 @@ final class ProductAdminController extends AbstractController
       if (!$product) {
         return new JsonResponse(['message' => 'Produit introuvable']);
       }
+
       $picture = $pictureRepository->find($pictureId);
       if (!$picture) {
         return new JsonResponse(['message' => 'Image introuvable']);
       }
+
       if ($picture->getProduct()->getId() !== $productId) {
         return new JsonResponse(['message' => 'L\'image ne correspond pas au produit']);
       }
+
       $filename = $this->getParameter('images_directory') . '/' . $picture->getFilename();
       if (file_exists($filename)) {
         unlink($filename);

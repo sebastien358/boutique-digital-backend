@@ -28,9 +28,9 @@ security:
 
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/panier, roles: ROLE_USER }
-        - { path: ^/commande, roles: ROLE_USER }
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
+        - { path: ^/api/panier, roles: ROLE_USER }
+        - { path: ^/api/commande, roles: ROLE_USER }
         - { path: ^/api/user/me, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/, roles: PUBLIC_ACCESS }
 
