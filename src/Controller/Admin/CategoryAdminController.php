@@ -9,8 +9,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-
-#[Route('/admin')]
+#[Route('/api/admin')]
+#[IsGranted('ROLE_ADMIN')]
 final class CategoryAdminController extends AbstractController
 {
   #[Route('/categories', methods: ['GET'])]
