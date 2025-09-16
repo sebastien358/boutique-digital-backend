@@ -14,6 +14,7 @@ final class HomeController extends AbstractController
 {
     private $productRepository;
     private $productService;
+
     public function __construct(ProductRepository $productRepository, ProductService $productService
     ){
         $this->productRepository = $productRepository;
@@ -26,10 +27,12 @@ final class HomeController extends AbstractController
         try {
             $offset = $request->query->getInt('offset', 0);
             $limit = $request->query->getInt('limit', 20);
+
             $products = $this->productRepository->findLoadProducts($offset, $limit);
             if (!$products) {
                 return new JsonResponse(['message' => 'Produits introuvales'], 404);
             }
+
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
@@ -43,6 +46,7 @@ final class HomeController extends AbstractController
         try {
             $filterSearch = $request->query->getString('search');
             $products = $this->productRepository->findBySearch(['search' => $filterSearch]);
+
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
@@ -57,6 +61,7 @@ final class HomeController extends AbstractController
             $minPrice = $request->query->getInt('minPrice');
             $maxPrice = $request->query->getInt('maxPrice');
             $products = $this->productRepository->findByPrice($minPrice, $maxPrice);
+
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
@@ -70,6 +75,7 @@ final class HomeController extends AbstractController
         try {
             $category = $request->query->getString('category');
             $products = $this->productRepository->findByCategory($category);
+
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {

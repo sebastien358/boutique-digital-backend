@@ -35,7 +35,6 @@ final class UserController extends AbstractController
 
             if (isset($data['email'])) {
                 $emailExists = $userRepository->findOneBy(['email' => $data['email']]);
-
                 if ($emailExists) {
                     return new JsonResponse([
                         'exists' => true

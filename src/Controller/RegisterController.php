@@ -20,17 +20,21 @@ final class RegisterController extends AbstractController
     {
         try {
             $user = new User();
+
             $form = $this->createForm(UserType::class, $user);
             $data = json_decode($request->getContent(), true);
             $form->submit($data);
+
             if ($form->isValid() && $form->isSubmitted()) {
-                $user->setRoles(['ROLE_ADMIN']);
+                $user->setRoles(['ROLE_USER']);
                 $user->setPassword($userPassword->hashPassword(
                     $user,
                     $form->get('password')->getData()
                 ));
+
                 $entityManager->persist($user);
                 $entityManager->flush();
+
                 return new JsonResponse(['message' => 'Inscription réussie'], 201);
             } else {
                 return new JsonResponse($this->getErrorMessages($form), 400);

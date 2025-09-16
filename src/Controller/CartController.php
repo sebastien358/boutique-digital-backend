@@ -76,11 +76,13 @@ final class CartController extends AbstractController
     {
         try {
             $item = $this->cartItemRepository->findOneBy(['id' => $id]);
+
             if ($item && $item->getQuantity() > 1) {
                 $item->setQuantity($item->getQuantity() - 1);
             } else {
                 $this->entityManager->remove($item);
             }
+
             $this->entityManager->flush();
             return new JsonResponse(['success' => true, 'message' => 'Item removed from cart successfully.'], 201);
         } catch (\Exception $e) {

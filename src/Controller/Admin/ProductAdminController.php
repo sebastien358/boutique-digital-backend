@@ -26,6 +26,7 @@ final class ProductAdminController extends AbstractController
     private $entityManager;
     private  $productService;
     private $fileUploader;
+
   public function __construct(
       ProductRepository $productRepository, EntityManagerInterface $entityManager,
       ProductService $productService, fileUploader $fileUploader
@@ -44,6 +45,7 @@ final class ProductAdminController extends AbstractController
       $limit = $request->query->getInt('limit', 20);
 
       $products = $this->productRepository->findAllProducts($page, $limit);
+
       if (!$products) {
           return new JsonResponse(['message' => 'Les produits sont introuvables']);
       }
