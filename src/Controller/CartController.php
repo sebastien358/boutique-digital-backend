@@ -55,13 +55,16 @@ final class CartController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
+
             $user = $this->getUser();
+
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
             if (!$cart) {
                 $cart = new Cart();
                 $cart->setUser($user);
                 $this->entityManager->persist($cart);
             }
+
             foreach ($data as $item) {
                 $existingCartItem = $this->cartItemRepository->findOneBy(['cart' => $cart, 'productId' => $item['id']]);
                 if ($existingCartItem) {
@@ -70,6 +73,7 @@ final class CartController extends AbstractController
                 } else {
                     $cartItem = new CartItem();
                     $cartItem->setCart($cart);
+
                     $cartItem->setProductId($item['id']);
                     $cartItem->setTitle($item['title']);
                     $cartItem->setPrice($item['price']);
@@ -78,6 +82,7 @@ final class CartController extends AbstractController
                 }
             }
             $this->entityManager->flush();
+
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart']);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
@@ -86,20 +91,18 @@ final class CartController extends AbstractController
 
 
     #[Route('/delete/{id}', methods: ['DELETE'])]
-    public function delete(int $id, Request $request): JsonResponse
+    public function delete(int $id): JsonResponse
     {
         try {
             $itemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['id' => $id]);
 
             if ($itemExisting && $itemExisting->getQuantity() > 1) {
                 $itemExisting->setQuantity($itemExisting->getQuantity() - 1);
-
                 $this->entityManager->persist($itemExisting);
             } else {
                 $this->entityManager->remove($itemExisting);
             }
             $this->entityManager->flush();
-
             return new JsonResponse(['success' => true, 'message' => 'Item deleted from cart'], 200);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
