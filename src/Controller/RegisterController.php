@@ -15,27 +15,37 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/api')]
 final class RegisterController extends AbstractController
 {
+    private $passwordHasher;
+    private $entityManager;
+
+    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager)
+    {
+        $this->passwordHasher = $passwordHasher;
+        $this->entityManager = $entityManager;
+    }
+
     #[Route('/register', methods: ['POST'])]
-    public function register(Request $request, UserPasswordHasherInterface $userPassword, EntityManagerInterface $entityManager): JsonResponse
+    public function register(Request $request): JsonResponse
     {
         try {
             $user = new User();
 
             $form = $this->createForm(UserType::class, $user);
             $data = json_decode($request->getContent(), true);
+
             $form->submit($data);
 
             if ($form->isValid() && $form->isSubmitted()) {
                 $user->setRoles(['ROLE_USER']);
-                $user->setPassword($userPassword->hashPassword(
+                $user->setPassword($this->passwordHasher->hashPassword(
                     $user,
                     $form->get('password')->getData()
                 ));
 
-                $entityManager->persist($user);
-                $entityManager->flush();
+                $this->entityManager->persist($user);
+                $this->entityManager->flush();
 
-                return new JsonResponse(['message' => 'Inscription réussie'], 201);
+               return new JsonResponse(['message' => 'Inscription réussie'], 201);
             } else {
                 return new JsonResponse($this->getErrorMessages($form), 400);
             }

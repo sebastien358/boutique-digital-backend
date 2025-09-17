@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Entity;
 
@@ -15,6 +15,10 @@ class Cart
     #[ORM\Column(type: 'integer')]
     private $id;
 
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'carts')]
+    #[ORM\JoinColumn(nullable: false)]
+    private $user;
+
     #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'])]
     private $items;
 
@@ -28,6 +32,17 @@ class Cart
         return $this->id;
     }
 
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
     public function getItems(): Collection
     {
         return $this->items;
@@ -39,7 +54,6 @@ class Cart
             $this->items[] = $item;
             $item->setCart($this);
         }
-
         return $this;
     }
 
@@ -52,10 +66,10 @@ class Cart
                 $item->setCart(null);
             }
         }
-
         return $this;
     }
 }
+
 
 
 

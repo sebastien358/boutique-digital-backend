@@ -33,17 +33,12 @@ final class UserController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
 
-            if (isset($data['email'])) {
-                $emailExists = $userRepository->findOneBy(['email' => $data['email']]);
-                if ($emailExists) {
-                    return new JsonResponse([
-                        'exists' => true
-                    ]);
-                } else {
-                    return new JsonResponse([
-                        'exists' => false
-                    ]);
-                }
+            $emailExisting = $userRepository->findOneBy(['email' => $data['email']]);
+
+            if ($emailExisting) {
+                return new JsonResponse(['exists' => true, 'message' => 'Email existant']);
+            } else {
+                return new JsonResponse(['exists' => false, 'message' => 'Email non valide']);
             }
         } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);

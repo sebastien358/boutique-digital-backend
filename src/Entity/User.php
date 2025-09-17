@@ -48,7 +48,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Cart>
      */
-    #[ORM\OneToMany(targetEntity: Cart::class, mappedBy: 'relation')]
+    #[ORM\OneToMany(targetEntity: Cart::class, mappedBy: 'user')]
     private Collection $carts;
 
     public function __construct()
@@ -169,25 +169,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->carts;
     }
 
-    public function addCart(Cart $cart): static
+    public function addCart(Cart $cart): self
     {
         if (!$this->carts->contains($cart)) {
-            $this->carts->add($cart);
-            $cart->setRelation($this);
+            $this->carts[] = $cart;
+            $cart->setUser($this);
         }
-
         return $this;
     }
 
-    public function removeCart(Cart $cart): static
+    public function removeCart(Cart $cart): self
     {
-        if ($this->carts->removeElement($cart)) {
+        if ($this->carts->contains($cart)) {
+            $this->carts->removeElement($cart);
             // set the owning side to null (unless already changed)
-            if ($cart->getRelation() === $this) {
-                $cart->setRelation(null);
+            if ($cart->getUser() === $this) {
+                $cart->setUser(null);
             }
         }
-
         return $this;
     }
 }

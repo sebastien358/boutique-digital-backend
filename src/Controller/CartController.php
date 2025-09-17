@@ -29,6 +29,7 @@ final class CartController extends AbstractController
     {
         try {
             $carts = $this->cartItemRepository->findAll();
+
             $dataCarts = $normalizer->normalize($carts, 'json', ['groups' => 'carts']);
             return new JsonResponse($dataCarts);
         } catch (\Exception $e) {
@@ -37,22 +38,23 @@ final class CartController extends AbstractController
     }
 
     #[Route('/api/item/new', methods: ['POST'])]
-    public function addToCart(Request $request): JsonResponse
+    public function new(Request $request): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true);
 
+            $user = $this->getUser();
+
             $cart = new Cart();
+            $cart->setUser($user);
             $this->entityManager->persist($cart);
 
             foreach ($data as $item) {
-                $itemExist = $this->cartItemRepository->findOneBy(['productId' => $item['id']]);
-                if ($itemExist) {
-                    if ($itemExist->getCart() !== $cart) {
-                        $itemExist->setCart($cart);
-                    }
-                    $itemExist->setQuantity($itemExist->getQuantity() + $item['quantity']);
-                    $this->entityManager->persist($itemExist);
+                $itemExistingCart = $this->cartItemRepository->findOneBy(['productId' => $item['id']]);
+                if ($itemExistingCart && $itemExistingCart->getCart()->getId() !== $cart->getId()) {
+                    $itemExistingCart->setCart($cart);
+                    $itemExistingCart->setQuantity($itemExistingCart->getQuantity() + $item['quantity']);
+                    $this->entityManager->persist($itemExistingCart);
                 } else {
                     $cartItem = new CartItem();
                     $cartItem->setCart($cart);
@@ -62,32 +64,35 @@ final class CartController extends AbstractController
                     $cartItem->setQuantity($item['quantity']);
                     $this->entityManager->persist($cartItem);
                 }
-
-                $this->entityManager->flush();
             }
-            return new JsonResponse(['success' => true, 'message' => 'Item added to cart successfully.'], 201);
+            $this->entityManager->flush();
+
+            return new JsonResponse(['success' => true, 'message' => 'Item added to cart']);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 
     #[Route('/api/delete/item/{id}', methods: ['DELETE'])]
-    public function removeItem(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
         try {
-            $item = $this->cartItemRepository->findOneBy(['id' => $id]);
+            $itemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['id' => $id]);
 
-            if ($item && $item->getQuantity() > 1) {
-                $item->setQuantity($item->getQuantity() - 1);
+            if ($itemExisting && $itemExisting->getQuantity() > 1) {
+                $itemExisting->setQuantity($itemExisting->getQuantity() - 1);
+
+                $this->entityManager->persist($itemExisting);
             } else {
-                $this->entityManager->remove($item);
+                $this->entityManager->remove($itemExisting);
             }
-
             $this->entityManager->flush();
-            return new JsonResponse(['success' => true, 'message' => 'Item removed from cart successfully.'], 201);
+
+            return new JsonResponse(['success' => true, 'message' => 'Item deleted from cart'], 200);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
+
 }
 
