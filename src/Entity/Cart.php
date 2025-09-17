@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'carts')]
@@ -13,13 +14,16 @@ class Cart
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['carts'])]
     private $id;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'carts')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['carts'])]
     private $user;
 
-    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[Groups(['carts'])]
     private $items;
 
     public function __construct()

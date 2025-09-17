@@ -5,13 +5,17 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Repository\CartItemRepository;
+use App\Repository\CartRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
+#[Route('/api/item')]
+#[IsGranted('ROLE_USER')]
 final class CartController extends AbstractController
 {
     private $entityManager;
@@ -24,37 +28,45 @@ final class CartController extends AbstractController
         $this->cartItemRepository = $cartItemRepository;
     }
 
-    #[Route('/api/items', methods: ['GET'])]
-    public function items(NormalizerInterface $normalizer): JsonResponse
+    #[Route('/list', methods: ['GET'])]
+    public function items(NormalizerInterface $normalizer, CartRepository $cartRepository): JsonResponse
     {
         try {
-            $carts = $this->cartItemRepository->findAll();
-
-            $dataCarts = $normalizer->normalize($carts, 'json', ['groups' => 'carts']);
+            $user = $this->getUser();
+            $cart = $cartRepository->findOneBy(['user' => $user]);
+            if (!$cart) {
+                return new JsonResponse([], 200);
+            }
+            $cartItems = $cart->getItems();
+            $dataCarts = $normalizer->normalize($cartItems, 'json', [
+                'groups' => ['carts'],
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
             return new JsonResponse($dataCarts);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 
-    #[Route('/api/item/new', methods: ['POST'])]
+    #[Route('/new', methods: ['POST'])]
     public function new(Request $request): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true);
-
             $user = $this->getUser();
-
-            $cart = new Cart();
-            $cart->setUser($user);
-            $this->entityManager->persist($cart);
-
+            $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
+            if (!$cart) {
+                $cart = new Cart();
+                $cart->setUser($user);
+                $this->entityManager->persist($cart);
+            }
             foreach ($data as $item) {
-                $itemExistingCart = $this->cartItemRepository->findOneBy(['productId' => $item['id']]);
-                if ($itemExistingCart && $itemExistingCart->getCart()->getId() !== $cart->getId()) {
-                    $itemExistingCart->setCart($cart);
-                    $itemExistingCart->setQuantity($itemExistingCart->getQuantity() + $item['quantity']);
-                    $this->entityManager->persist($itemExistingCart);
+                $existingCartItem = $this->cartItemRepository->findOneBy(['cart' => $cart, 'productId' => $item['id']]);
+                if ($existingCartItem) {
+                    $existingCartItem->setQuantity($existingCartItem->getQuantity() + $item['quantity']);
+                    $this->entityManager->persist($existingCartItem);
                 } else {
                     $cartItem = new CartItem();
                     $cartItem->setCart($cart);
@@ -66,14 +78,14 @@ final class CartController extends AbstractController
                 }
             }
             $this->entityManager->flush();
-
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart']);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 
-    #[Route('/api/delete/item/{id}', methods: ['DELETE'])]
+
+    #[Route('/delete/{id}', methods: ['DELETE'])]
     public function delete(int $id, Request $request): JsonResponse
     {
         try {
