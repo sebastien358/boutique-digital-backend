@@ -36,7 +36,7 @@ class Product
     #[Groups('products', 'product')]
     private Collection $pictures;
 
-    #[ORM\ManyToOne(inversedBy: 'products')]
+    #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('products', 'product')]
     private ?Category $category = null;

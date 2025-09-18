@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Repository\CartItemRepository;
-use App\Repository\CartRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,25 +26,25 @@ final class CartController extends AbstractController
         $this->entityManager = $entityManager;
         $this->cartItemRepository = $cartItemRepository;
     }
-
     #[Route('/list', methods: ['GET'])]
-    public function items(NormalizerInterface $normalizer, CartRepository $cartRepository): JsonResponse
+    public function cartItems(NormalizerInterface $normalizer): JsonResponse
     {
         try {
             $user = $this->getUser();
-            $cart = $cartRepository->findOneBy(['user' => $user]);
+
+            $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
             if (!$cart) {
                 return new JsonResponse([], 200);
             }
-            $cartItems = $cart->getItems();
-            $dataCarts = $normalizer->normalize($cartItems, 'json', [
+            $items = $cart->getItems();
+            $dataItemsToCart = $normalizer->normalize($items, 'json', [
                 'groups' => ['carts'],
                 'circular_reference_handler' => function ($object) {
                     return $object->getId();
                 }
             ]);
-            return new JsonResponse($dataCarts);
-        } catch (\Exception $e) {
+            return new JsonResponse($dataItemsToCart, 200);
+        } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
@@ -66,45 +65,50 @@ final class CartController extends AbstractController
             }
 
             foreach ($data as $item) {
-                $existingCartItem = $this->cartItemRepository->findOneBy(['cart' => $cart, 'productId' => $item['id']]);
-                if ($existingCartItem) {
-                    $existingCartItem->setQuantity($existingCartItem->getQuantity() + $item['quantity']);
-                    $this->entityManager->persist($existingCartItem);
+                $itemExisting = $this->cartItemRepository->findOneBy(['cart' => $cart, 'productId' => $item['id']]);
+                if ($itemExisting) {
+                    $itemExisting->setQuantity($itemExisting->getQuantity() + $item['quantity']);
+                    $this->entityManager->persist($itemExisting);
                 } else {
                     $cartItem = new CartItem();
                     $cartItem->setCart($cart);
-
                     $cartItem->setProductId($item['id']);
                     $cartItem->setTitle($item['title']);
                     $cartItem->setPrice($item['price']);
                     $cartItem->setQuantity($item['quantity']);
                     $this->entityManager->persist($cartItem);
                 }
+                $this->entityManager->flush();
             }
-            $this->entityManager->flush();
 
-            return new JsonResponse(['success' => true, 'message' => 'Item added to cart']);
-        } catch (\Exception $e) {
+            return new JsonResponse(['success' => true, 'message' => 'Item added to cart', 201]);
+
+        } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
-
 
     #[Route('/delete/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {
         try {
-            $itemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['id' => $id]);
+            $user = $this->getUser();
+            $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
+            $itemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
 
-            if ($itemExisting && $itemExisting->getQuantity() > 1) {
-                $itemExisting->setQuantity($itemExisting->getQuantity() - 1);
-                $this->entityManager->persist($itemExisting);
+            if ($itemExisting) {
+                if ($itemExisting->getQuantity() > 1) {
+                    $itemExisting->setQuantity($itemExisting->getQuantity() - 1);
+                    $this->entityManager->persist($itemExisting);
+                } else {
+                    $this->entityManager->remove($itemExisting);
+                }
+                $this->entityManager->flush();
+                return new JsonResponse(['success' => true, 'message' => 'Item deleted from cart'], 200);
             } else {
-                $this->entityManager->remove($itemExisting);
+                return new JsonResponse(['error' => 'Item not found in cart'], 404);
             }
-            $this->entityManager->flush();
-            return new JsonResponse(['success' => true, 'message' => 'Item deleted from cart'], 200);
-        } catch (\Exception $e) {
+        } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
