@@ -27,7 +27,7 @@ final class PayementController extends AbstractController
                 return new JsonResponse(['error' => 'Token de paiement manquant'], 400);
             }
 
-            Stripe::setApiKey('');
+            Stripe::setApiKey('🫵');
 
             $charge = \Stripe\Charge::create([
                 'amount' => 1000, // Montant à débiter (en centimes)
