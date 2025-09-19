@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Cart;
 use App\Entity\User;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,23 +29,23 @@ final class RegisterController extends AbstractController
     public function register(Request $request): JsonResponse
     {
         try {
-            $user = new User();
-
-            $form = $this->createForm(UserType::class, $user);
             $data = json_decode($request->getContent(), true);
 
+            $user = new User();
+            $form = $this->createForm(UserType::class, $user);
             $form->submit($data);
-
             if ($form->isValid() && $form->isSubmitted()) {
                 $user->setRoles(['ROLE_USER']);
                 $user->setPassword($this->passwordHasher->hashPassword(
                     $user,
                     $form->get('password')->getData()
                 ));
-
+                $cart = new Cart();
+                $user->setCart($cart);
+                $cart->setUser($user);
                 $this->entityManager->persist($user);
+                $this->entityManager->persist($cart);
                 $this->entityManager->flush();
-
                return new JsonResponse(['message' => 'Inscription réussie'], 201);
             } else {
                 return new JsonResponse($this->getErrorMessages($form), 400);

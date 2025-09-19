@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -19,14 +17,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     #[Groups(["user"])]
     private ?int $id = null;
-
-    #[ORM\Column(length: 125)]
-    #[Groups(["user"])]
-    private ?string $lastname = null;
-
-    #[ORM\Column(length: 125)]
-    #[Groups(["user"])]
-    private ?string $firstname = null;
 
     #[ORM\Column(length: 180)]
     #[Groups(["user"])]
@@ -45,44 +35,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    /**
-     * @var Collection<int, Cart>
-     */
-    #[ORM\OneToMany(targetEntity: Cart::class, mappedBy: 'user')]
-    private Collection $carts;
-
-    public function __construct()
-    {
-        $this->carts = new ArrayCollection();
-    }
+    #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user')]
+    private ?Cart $cart;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-       public function getLastname(): ?string
-    {
-        return $this->lastname;
-    }
-
-    public function setLastname(string $lastname): static
-    {
-        $this->lastname = $lastname;
-
-        return $this;
-    }
-
-    public function getFirstname(): ?string
-    {
-        return $this->firstname;
-    }
-
-    public function setFirstname(string $firstname): static
-    {
-        $this->firstname = $firstname;
-
-        return $this;
     }
 
     public function getEmail(): ?string
@@ -150,7 +108,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
 
         return $data;
     }
@@ -161,32 +119,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // @deprecated, to be removed when upgrading to Symfony 8
     }
 
-    /**
-     * @return Collection<int, Cart>
-     */
-    public function getCarts(): Collection
+    public function getCart(): ?Cart
     {
-        return $this->carts;
+        return $this->cart;
     }
 
-    public function addCart(Cart $cart): self
+    public function setCart(?Cart $cart): self
     {
-        if (!$this->carts->contains($cart)) {
-            $this->carts[] = $cart;
-            $cart->setUser($this);
-        }
-        return $this;
-    }
+        $this->cart = $cart;
 
-    public function removeCart(Cart $cart): self
-    {
-        if ($this->carts->contains($cart)) {
-            $this->carts->removeElement($cart);
-            // set the owning side to null (unless already changed)
-            if ($cart->getUser() === $this) {
-                $cart->setUser(null);
-            }
-        }
         return $this;
     }
 }
