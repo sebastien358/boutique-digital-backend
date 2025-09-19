@@ -19,9 +19,9 @@ class CartItem
     #[ORM\JoinColumn(nullable: false)]
     private $cart;
 
-    #[ORM\Column(type: 'integer')]
-    #[Groups('carts')]
-    private $productId;
+    #[ORM\ManyToOne(targetEntity: Product::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private $product;
 
     #[ORM\Column(type: 'string')]
      #[Groups('carts')]
@@ -52,14 +52,14 @@ class CartItem
         return $this;
     }
 
-    public function getProductId(): ?int
+    public function getProduct(): ?Product
     {
-        return $this->productId;
+        return $this->product;
     }
 
-    public function setProductId(int $productId): self
+    public function setProduct(?Product $product): self
     {
-        $this->productId = $productId;
+        $this->product = $product;
 
         return $this;
     }
