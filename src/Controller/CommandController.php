@@ -30,10 +30,7 @@ final class CommandController extends AbstractController
             $form->submit($data);
 
             if ($form->isSubmitted() && $form->isValid()) {
-                // Récupère les informations du panier
-                // Dans le contrôleur
                 $cart = $entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
-                // Crée les orderItems correspondants
                 $cartItems = $cart->getItems();
                 foreach ($cartItems as $item) {
                     $orderItem = new OrderItems();

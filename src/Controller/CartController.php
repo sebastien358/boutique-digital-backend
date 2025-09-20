@@ -57,7 +57,7 @@ final class CartController extends AbstractController
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
 
             foreach ($data as $item) {
-                $product = $this->entityManager->getRepository(Product::class)->find($item['id']);
+                $product = $this->entityManager->getRepository(Product::class)->findOneBy(['id' => $item['id']]);
                 if (!$product) {
                     return new JsonResponse(['error' => 'Produit non trouvé'], 404);
                 }
