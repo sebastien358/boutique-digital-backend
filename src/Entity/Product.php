@@ -39,11 +39,15 @@ class Product
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups('products', 'product')]
-    private ?Category $category = null;
+    private Category $category;
+
+    #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'product')]
+    private Collection $orderItems;
 
     public function __construct()
     {
         $this->pictures = new ArrayCollection();
+        $this->orderItems = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -112,7 +116,7 @@ class Product
         return $this;
     }
 
-    public function getCategory(): ?Category
+    public function getCategory(): Category
     {
         return $this->category;
     }
@@ -120,6 +124,18 @@ class Product
     public function setCategory(Category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getOrderItems(): Collection
+    {
+        return $this->orderItems;
+    }
+
+    public function setOrderItems(Collection $orderItems): static
+    {
+        $this->orderItems = $orderItems;
 
         return $this;
     }

@@ -51,7 +51,7 @@ class Order
     #[Groups(['order'])]
     private User $user;
 
-    #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderItem::class, orphanRemoval: true, cascade: ['persist'])]
+    #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'order', orphanRemoval: true, cascade: ['persist'])]
     #[Groups(['order_items'])]
     private Collection $orderItems;
 
@@ -158,7 +158,7 @@ class Order
         return $this->orderItems;
     }
 
-    public function addOrderItem(OrderItem $orderItem): self
+    public function addOrderItem(OrderItems $orderItem): self
     {
         if (!$this->orderItems->contains($orderItem)) {
             $this->orderItems[] = $orderItem;
@@ -168,7 +168,7 @@ class Order
         return $this;
     }
 
-    public function removeOrderItem(OrderItem $orderItem): self
+    public function removeOrderItem(OrderItems $orderItem): self
     {
         if ($this->orderItems->removeElement($orderItem)) {
             if ($orderItem->getOrder() === $this) {

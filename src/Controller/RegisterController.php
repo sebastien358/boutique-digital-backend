@@ -32,7 +32,6 @@ final class RegisterController extends AbstractController
             $data = json_decode($request->getContent(), true);
 
             $user = new User();
-
             $form = $this->createForm(UserType::class, $user);
             $form->submit($data);
             if ($form->isValid() && $form->isSubmitted()) {

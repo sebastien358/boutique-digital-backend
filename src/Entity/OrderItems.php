@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
-class OrderItem
+class OrderItems
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -15,12 +15,12 @@ class OrderItem
     #[Groups(['order'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'orderItems')]
+    #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'orderItems')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['order'])]
     private Order $order;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'orderItems')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['order'])]
     private Product $product;

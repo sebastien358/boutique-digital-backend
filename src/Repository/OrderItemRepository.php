@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\OrderItem;
+use App\Entity\OrderItems;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<OrderItem>
+ * @extends ServiceEntityRepository<OrderItems>
  */
 class OrderItemRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, OrderItem::class);
+        parent::__construct($registry, OrderItems::class);
     }
 
     //    /**
-    //     * @return OrderItem[] Returns an array of OrderItem objects
+    //     * @return OrderItems[] Returns an array of OrderItems objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class OrderItemRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?OrderItem
+    //    public function findOneBySomeField($value): ?OrderItems
     //    {
     //        return $this->createQueryBuilder('o')
     //            ->andWhere('o.exampleField = :val')
