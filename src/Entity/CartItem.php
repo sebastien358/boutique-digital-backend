@@ -24,15 +24,15 @@ class CartItem
     private $product;
 
     #[ORM\Column(type: 'string')]
-     #[Groups('carts')]
+    #[Groups('carts')]
     private $title;
 
     #[ORM\Column(type: 'float')]
-     #[Groups('carts')]
+    #[Groups('carts')]
     private $price;
 
     #[ORM\Column(type: 'integer')]
-     #[Groups('carts')]
+    #[Groups('carts')]
     private $quantity;
 
     public function getId(): ?int

@@ -5,8 +5,6 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Entity\Product;
-use App\Repository\CartItemRepository;
-use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,13 +18,11 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 final class CartController extends AbstractController
 {
     private $entityManager;
-    private $cartItemRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, CartItemRepository $cartItemRepository
+    public function __construct(EntityManagerInterface $entityManager
     )
     {
         $this->entityManager = $entityManager;
-        $this->cartItemRepository = $cartItemRepository;
     }
     #[Route('/list', methods: ['GET'])]
     public function cartItems(NormalizerInterface $normalizer): JsonResponse
@@ -66,7 +62,7 @@ final class CartController extends AbstractController
                     return new JsonResponse(['error' => 'Produit non trouvé'], 404);
                 }
 
-                $itemExisting = $this->cartItemRepository->findOneBy(['cart' => $cart, 'product' => $product]);
+                $itemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'product' => $product]);
                 if ($itemExisting) {
                     $itemExisting->setQuantity($itemExisting->getQuantity() + $item['quantity']);
                     $this->entityManager->persist($itemExisting);
@@ -88,7 +84,6 @@ final class CartController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
-
 
     #[Route('/delete/{id}', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
@@ -114,6 +109,5 @@ final class CartController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
-
 }
 

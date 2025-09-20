@@ -33,7 +33,6 @@ class Product
      * @var Collection<int, Picture>
      */
     #[ORM\OneToMany(targetEntity: Picture::class, mappedBy: 'product', orphanRemoval: true, cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: true)]
     #[Groups('products', 'product')]
     private Collection $pictures;
 
