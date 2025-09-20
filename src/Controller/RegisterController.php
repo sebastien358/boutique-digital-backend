@@ -6,6 +6,8 @@ use App\Entity\Cart;
 use App\Entity\User;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Doctrine\DBAL\Exception\DBALException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Test\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,10 +21,13 @@ final class RegisterController extends AbstractController
     private $passwordHasher;
     private $entityManager;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager)
+    private $logger;
+
+    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->passwordHasher = $passwordHasher;
         $this->entityManager = $entityManager;
+        $this->logger = $logger;
     }
 
     #[Route('/register', methods: ['POST'])]
@@ -30,28 +35,35 @@ final class RegisterController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-
             $user = new User();
             $form = $this->createForm(UserType::class, $user);
             $form->submit($data);
-            if ($form->isValid() && $form->isSubmitted()) {
-                $user->setRoles(['ROLE_USER']);
-                $user->setPassword($this->passwordHasher->hashPassword(
-                    $user,
-                    $form->get('password')->getData()
-                ));
-                $cart = new Cart();
-                $user->setCart($cart);
-                $cart->setUser($user);
-                $this->entityManager->persist($user);
-                $this->entityManager->persist($cart);
-                $this->entityManager->flush();
-               return new JsonResponse(['message' => 'Inscription réussie'], 201);
-            } else {
+
+            if (!$form->isValid()) {
                 return new JsonResponse($this->getErrorMessages($form), 400);
             }
-        } catch(\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+
+            $user->setRoles(['ROLE_USER']);
+            $user->setPassword($this->passwordHasher->hashPassword($user, $form->get('password')->getData()));
+
+            $cart = new Cart();
+            $user->setCart($cart);
+            $cart->setUser($user);
+
+            $this->entityManager->persist($user);
+            $this->entityManager->persist($cart);
+
+            try {
+                $this->entityManager->flush();
+            } catch (DBALException $e) {
+                $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ' . $e->getMessage());
+                return new JsonResponse(['error' => 'Erreur interne'], 500);
+            }
+
+            return new JsonResponse(['success' => true, 'message' => 'Inscription réussie'], 201);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ' . $e->getMessage());
+            return new JsonResponse(['error' => 'Erreur interne'], 500);
         }
     }
 
@@ -68,5 +80,4 @@ final class RegisterController extends AbstractController
         }
         return $errors;
     }
-
 }

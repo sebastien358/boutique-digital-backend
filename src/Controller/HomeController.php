@@ -34,7 +34,6 @@ final class HomeController extends AbstractController
             }
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
-
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
@@ -49,7 +48,6 @@ final class HomeController extends AbstractController
             $products = $this->productRepository->findBySearch(['search' => $filterSearch]);
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
-
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
@@ -65,7 +63,6 @@ final class HomeController extends AbstractController
             $products = $this->productRepository->findByPrice($minPrice, $maxPrice);
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
-
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
@@ -80,7 +77,6 @@ final class HomeController extends AbstractController
             $products = $this->productRepository->findByCategory($category);
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
-
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);

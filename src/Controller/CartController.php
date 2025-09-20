@@ -5,7 +5,9 @@ namespace App\Controller;
 use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Entity\Product;
+use Doctrine\DBAL\Exception\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,11 +20,12 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 final class CartController extends AbstractController
 {
     private $entityManager;
+    private $logger;
 
-    public function __construct(EntityManagerInterface $entityManager
-    )
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
+        $this->logger = $logger;
     }
     #[Route('/list', methods: ['GET'])]
     public function cartItems(NormalizerInterface $normalizer): JsonResponse
@@ -77,11 +80,17 @@ final class CartController extends AbstractController
                 }
             }
 
-            $this->entityManager->flush();
+            try {
+                $this->entityManager->flush();
+            } catch(DBALException $e) {
+                $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier' . $e->getMessage());
+                return new JsonResponse(['error' => 'Erreur interne'], 500);
+            }
 
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart'], 201);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier' . $e->getMessage());
+            return new JsonResponse(['error' => 'Erreur interne'], 500);
         }
     }
 
@@ -100,13 +109,21 @@ final class CartController extends AbstractController
                 } else {
                     $this->entityManager->remove($itemExisting);
                 }
-                $this->entityManager->flush();
+
+                try {
+                    $this->entityManager->flush();
+                } catch(DBALException $e) {
+                    $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier' . $e->getMessage());
+                    return new JsonResponse(['error' => 'Erreur interne'], 500);
+                }
+
                 return new JsonResponse(['success' => true, 'message' => 'Item deleted from cart'], 200);
             } else {
                 return new JsonResponse(['error' => 'Item not found in cart'], 404);
             }
         } catch(\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+            $this->logger->error('Erreur lors de la suppresion d\'un produit du panier' . $e->getMessage());
+            return new JsonResponse(['error' => 'Erreur interne'], 500);
         }
     }
 }

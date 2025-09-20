@@ -6,7 +6,9 @@ use App\Entity\Cart;
 use App\Entity\Order;
 use App\Entity\OrderItems;
 use App\Form\OrderType;
+use Doctrine\DBAL\Exception\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Test\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,6 +20,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class CommandController extends AbstractController
 {
+    private $entityManager;
+    private $logger;
+
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
+    {
+        $this->entityManager = $entityManager;
+        $this->logger = $logger;
+    }
+
     #[Route('/new', methods: ['POST'])]
     public function index(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
@@ -43,15 +54,22 @@ final class CommandController extends AbstractController
                 }
 
                 $entityManager->persist($order);
-                $entityManager->flush();
+
+                try {
+                    $entityManager->flush();
+                } catch (DBALException $e) {
+                    $this->logger->error('Erreur de la commande' . $e->getMessage());
+                    return new JsonResponse(['error' => 'Erreur interne'], 500);
+                }
 
                 return new JsonResponse(['message' => 'Commande créée avec succès'], 201);
             } else {
                 $errors = $this->getErrorMessages($form);
                 return new JsonResponse(['errors' => $errors], 400);
             }
-        } catch (\Exception $e) {
-            return new JsonResponse(['errors' => $e->getMessage()], 400);
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur de la commande' . $e->getMessage());
+            return new JsonResponse(['error' => 'Erreur interne'], 500);
         }
     }
 
