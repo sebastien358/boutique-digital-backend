@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Cart;
 use App\Entity\Order;
 use App\Entity\OrderItems;
-use App\Entity\Product;
 use App\Form\OrderType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,8 +30,24 @@ final class CommandController extends AbstractController
             $form->submit($data);
 
             if ($form->isSubmitted() && $form->isValid()) {
+                // Récupère les informations du panier
+                // Dans le contrôleur
+                $cart = $entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
+                // Crée les orderItems correspondants
+                $cartItems = $cart->getItems();
+                foreach ($cartItems as $item) {
+                    $orderItem = new OrderItems();
+                    $orderItem->setProduct($item->getProduct());
+                    $orderItem->setQuantity($item->getQuantity());
+                    $orderItem->setPrice($item->getPrice());
+                    $orderItem->setOrder($order);
+                    $order->addOrderItem($orderItem);
+                    $entityManager->persist($orderItem);
+                }
+
                 $entityManager->persist($order);
                 $entityManager->flush();
+
                 return new JsonResponse(['message' => 'Commande créée avec succès'], 201);
             } else {
                 $errors = $this->getErrorMessages($form);
@@ -41,6 +57,7 @@ final class CommandController extends AbstractController
             return new JsonResponse(['errors' => $e->getMessage()], 400);
         }
     }
+
 
     private function getErrorMessages(FormInterface $form): array
     {

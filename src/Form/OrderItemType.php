@@ -16,7 +16,7 @@ class OrderItemType extends AbstractType
         $builder
             ->add('product', EntityType::class, [
                 'class' => Product::class,
-                'choice_label' => 'id',
+                'choice_label' => 'title',
             ])
             ->add('quantity')
         ;

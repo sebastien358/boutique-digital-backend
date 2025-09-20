@@ -162,11 +162,11 @@ class Order
     {
         if (!$this->orderItems->contains($orderItem)) {
             $this->orderItems[] = $orderItem;
-            $orderItem->setOrder($this);
+            $orderItem->setOrder($this); // Cette ligne est importante
         }
-
         return $this;
     }
+
 
     public function removeOrderItem(OrderItems $orderItem): self
     {
