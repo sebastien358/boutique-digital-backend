@@ -43,7 +43,7 @@ final class CartController extends AbstractController
             return new JsonResponse($dataItems, 200);
         } catch(\Throwable $e) {
             $this->logger->error('Erreur de la récupération des produit du panier', ['error' => $e->getMessage()]);
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+            return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }
 
@@ -91,13 +91,13 @@ final class CartController extends AbstractController
                 $this->entityManager->flush();
             } catch(DBALException $e) {
                 $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier', ['error' => $e->getMessage()]);
-                return new JsonResponse(['error' => $e->getMessage()], 500);
+                return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart'], 201);
         } catch (\Throwable $e) {
             $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier', ['error' => $e->getMessage()]);
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+            return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }
 
@@ -124,13 +124,13 @@ final class CartController extends AbstractController
                 $this->entityManager->flush();
             } catch(DBALExecption $e) {
                 $this->logger->error('Erreur de la suppresion d\'un produit', ['error' => $e->getMessage()]);
-                return new JsonResponse(['error' => $e->getMessage()], 500);
+                return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Item deleted successfully'], 201);
         } catch(\Throwable $e) {
             $this->logger->error('Erreur de la suppression d\'un produit du panier', [$e->getMessage()]);
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+            return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }
 }

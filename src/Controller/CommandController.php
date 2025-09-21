@@ -58,8 +58,8 @@ final class CommandController extends AbstractController
                 try {
                     $entityManager->flush();
                 } catch (DBALException $e) {
-                    $this->logger->error('Erreur de la commande', ['message' => $e->getMessage()]);
-                    return new JsonResponse(['error' => $e->getMessage()], 500);
+                    $this->logger->error('Erreur de la commande : ', [$e->getMessage()]);
+                    return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
                 }
 
                 return new JsonResponse(['success' => true, 'message' => 'Commande créée avec succès'], 201);
@@ -68,8 +68,8 @@ final class CommandController extends AbstractController
                 return new JsonResponse(['errors' => $errors], 400);
             }
         } catch (\Throwable $e) {
-            $this->logger->error('Erreur de la commande', ['message' => $e->getMessage()]);
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+            $this->logger->error('Erreur de la commande : ', [$e->getMessage()]);
+            return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }
 

@@ -41,11 +41,14 @@ final class RegisterController extends AbstractController
             $form->submit($data);
 
             if (!$form->isValid()) {
-                return new JsonResponse($this->getErrorMessages($form), 400);
+                $errors = $this->getErrorMessages($form);
+                return new JsonResponse(['error' => $errors], 400);
             }
 
             $user->setRoles(['ROLE_USER']);
-            $user->setPassword($this->passwordHasher->hashPassword($user, $form->get('password')->getData()));
+            $user->setPassword($this->passwordHasher->hashPassword($user,
+                $form->get('password')->getData())
+            );
 
             $cart = new Cart();
             $user->setCart($cart);
@@ -57,14 +60,14 @@ final class RegisterController extends AbstractController
             try {
                 $this->entityManager->flush();
             } catch (DBALException $e) {
-                $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ' . $e->getMessage());
-                return new JsonResponse(['error' => 'Erreur interne'], 500);
+                $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ', ['error' => $e->getMessage()]);
+                return new JsonResponse(['error' => $e->getMessage()], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Inscription réussie'], 201);
         } catch (\Throwable $e) {
-            $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ' . $e->getMessage());
-            return new JsonResponse(['error' => 'Erreur interne'], 500);
+            $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ', ['error' => $e->getMessage()]);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 

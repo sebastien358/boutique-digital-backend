@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\ProductRepository;
 use App\Service\ProductService;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,11 +15,13 @@ final class HomeController extends AbstractController
 {
     private $productRepository;
     private $productService;
+    private $logger;
 
-    public function __construct(ProductRepository $productRepository, ProductService $productService
-    ){
+    public function __construct(ProductRepository $productRepository, ProductService $productService, LoggerInterface $logger)
+    {
         $this->productRepository = $productRepository;
         $this->productService = $productService;
+        $this->logger = $logger;
     }
 
     #[Route('/products', methods: ['GET'])]
@@ -35,8 +38,9 @@ final class HomeController extends AbstractController
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
-        } catch(\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+        } catch(\Throwable $e) {
+            $this->logger->error('Erreur de la récupération des produits : ', [$e->getMessage()]);
+            return new JsonResponse(['error' => 'Erreur interne du server'], 500);
         }
     }
 
@@ -49,8 +53,9 @@ final class HomeController extends AbstractController
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
-        } catch(\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+        } catch(\Throwable $e) {
+            $this->logger->error('Erreur de la récupération des produits "search" : ', [$e->getMessage()]);
+            return new JsonResponse(['error' => 'Erreur interne du server'], 500);
         }
     }
 
@@ -64,8 +69,9 @@ final class HomeController extends AbstractController
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
-        } catch(\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+        } catch(\Throwable $e) {
+            $this->logger->error('Erreur de la récupération des produits par "price" : ', [$e->getMessage()]);
+            return new JsonResponse(['error' => 'Erreur interne du server'], 500);
         }
     }
 
@@ -79,7 +85,8 @@ final class HomeController extends AbstractController
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts);
         } catch(\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
+            $this->logger->error('Erreur de la récupération des produits par "catégorie" : ', [$e->getMessage()]);
+            return new JsonResponse(['error' => 'Erreur interne du server'], 500);
         }
     }
 }

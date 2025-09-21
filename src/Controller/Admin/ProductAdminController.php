@@ -31,8 +31,8 @@ final class ProductAdminController extends AbstractController
     private $logger;
 
   public function __construct(
-      ProductRepository $productRepository, EntityManagerInterface $entityManager,
-      ProductService $productService, fileUploader $fileUploader, LoggerInterface $logger
+      ProductRepository $productRepository, EntityManagerInterface $entityManager, ProductService $productService,
+      fileUploader $fileUploader, LoggerInterface $logger
   ){
       $this->productRepository = $productRepository;
       $this->entityManager = $entityManager;
@@ -62,8 +62,9 @@ final class ProductAdminController extends AbstractController
         'total' => $total
       ]);
 
-    } catch(\Exception $e) {
-      return new JsonResponse(['error' => $e->getMessage()], 500);
+    } catch(\Throwable $e) {
+        $this->logger->error('Erreur de la récupération des produits', [$e->getMessage()]);
+        return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
   }
 
@@ -80,8 +81,9 @@ final class ProductAdminController extends AbstractController
       $dataProduct = $this->productService->getProductData($products, $request, $normalizer);
       return new JsonResponse($dataProduct);
 
-    } catch(\Exception $e) {
-      return new JsonResponse(['error' => $e->getMessage()], 500);
+    } catch(\Throwable $e) {
+        $this->logger->error('Erreur de la récupération d\'un produit', [$e->getMessage()]);
+        return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
   }
 
@@ -200,7 +202,7 @@ final class ProductAdminController extends AbstractController
       return new JsonResponse(['message' => 'Le produit a bien été supprimé'], 200);
     } catch(\Throwable $e) {
         $this->logger->error('Erreur de la suppression d\'un produit', ['message' => $e->getMessage()]);
-        return new JsonResponse(['error' => $e->getMessage()], 500);
+        return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
   }
 
@@ -234,13 +236,13 @@ final class ProductAdminController extends AbstractController
         $this->entityManager->flush();
       } catch(DBALException $e) {
         $this->logger->error('Erreur de la suppression des images du produit', ['message' => $e->getMessage()]);
-        return new JsonResponse(['error' => $e->getMessage()], 500);
+      return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
       }
 
       return new JsonResponse(['message' => 'L\'image a bien été supprimée'], 200);
     } catch(\Throwable $e) {
         $this->logger->error('Erreur de la suppression des images du produit', ['message' => $e->getMessage()]);
-        return new JsonResponse(['error' => $e->getMessage()], 500);
+        return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
   }
 
