@@ -27,25 +27,22 @@ final class CartController extends AbstractController
         $this->entityManager = $entityManager;
         $this->logger = $logger;
     }
+
     #[Route('/list', methods: ['GET'])]
     public function cartItems(NormalizerInterface $normalizer): JsonResponse
     {
         try {
             $user = $this->getUser();
-
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
             if (!$cart) {
                 return new JsonResponse([], 200);
             }
+
             $items = $cart->getItems();
-            $dataItemsToCart = $normalizer->normalize($items, 'json', [
-                'groups' => ['carts'],
-                'circular_reference_handler' => function ($object) {
-                    return $object->getId();
-                }
-            ]);
-            return new JsonResponse($dataItemsToCart, 200);
-        } catch(\Exception $e) {
+            $dataItems = $normalizer->normalize($items, 'json', ['groups' => 'carts']);
+            return new JsonResponse($dataItems, 200);
+        } catch(\Throwable $e) {
+            $this->logger->error('Erreur de la récupération des produit du panier', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
@@ -59,10 +56,20 @@ final class CartController extends AbstractController
             $user = $this->getUser();
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
 
+            if (!$cart) {
+                $cart = new Cart();
+                $cart->setUser($user);
+                $this->entityManager->persist($cart);
+            }
+
             foreach ($data as $item) {
                 $product = $this->entityManager->getRepository(Product::class)->findOneBy(['id' => $item['id']]);
                 if (!$product) {
                     return new JsonResponse(['error' => 'Produit non trouvé'], 404);
+                }
+
+                if ($item['quantity'] <= 0) {
+                    return new JsonResponse(['error' => 'Quantité invalide'], 400);
                 }
 
                 $itemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'product' => $product]);
@@ -83,47 +90,47 @@ final class CartController extends AbstractController
             try {
                 $this->entityManager->flush();
             } catch(DBALException $e) {
-                $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier' . $e->getMessage());
-                return new JsonResponse(['error' => 'Erreur interne'], 500);
+                $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier', ['error' => $e->getMessage()]);
+                return new JsonResponse(['error' => $e->getMessage()], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart'], 201);
         } catch (\Throwable $e) {
-            $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier' . $e->getMessage());
-            return new JsonResponse(['error' => 'Erreur interne'], 500);
+            $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier', ['error' => $e->getMessage()]);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 
     #[Route('/delete/{id}', methods: ['DELETE'])]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Request $request): JsonResponse
     {
         try {
             $user = $this->getUser();
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
-            $itemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
 
-            if ($itemExisting) {
-                if ($itemExisting->getQuantity() > 1) {
-                    $itemExisting->setQuantity($itemExisting->getQuantity() - 1);
-                    $this->entityManager->persist($itemExisting);
-                } else {
-                    $this->entityManager->remove($itemExisting);
-                }
-
-                try {
-                    $this->entityManager->flush();
-                } catch(DBALException $e) {
-                    $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier' . $e->getMessage());
-                    return new JsonResponse(['error' => 'Erreur interne'], 500);
-                }
-
-                return new JsonResponse(['success' => true, 'message' => 'Item deleted from cart'], 200);
-            } else {
-                return new JsonResponse(['error' => 'Item not found in cart'], 404);
+            $productExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
+            if (!$productExisting) {
+                return new JsonResponse(['error' => 'Produit non existant'], 404);
             }
-        } catch(\Exception $e) {
-            $this->logger->error('Erreur lors de la suppresion d\'un produit du panier' . $e->getMessage());
-            return new JsonResponse(['error' => 'Erreur interne'], 500);
+
+            if ($productExisting->getQuantity() > 1) {
+                $productExisting->setQuantity($productExisting->getQuantity() - 1);
+                $this->entityManager->persist($productExisting);
+            } else {
+                $this->entityManager->remove($productExisting);
+            }
+
+            try {
+                $this->entityManager->flush();
+            } catch(DBALExecption $e) {
+                $this->logger->error('Erreur de la suppresion d\'un produit', ['error' => $e->getMessage()]);
+                return new JsonResponse(['error' => $e->getMessage()], 500);
+            }
+
+            return new JsonResponse(['success' => true, 'message' => 'Item deleted successfully'], 201);
+        } catch(\Throwable $e) {
+            $this->logger->error('Erreur de la suppression d\'un produit du panier', [$e->getMessage()]);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 }
