@@ -1,13 +1,13 @@
-<?php 
+<?php
 
 namespace App\Service;
 
 class ProductService
 {
   public function getProductData($products, $request, $normalizer)
-  { 
+  {
     if (is_array($products)) {
-      $dataProducts = $normalizer->normalize($products, 'json', ['groups' => ['products', 'pictures'], 
+      $dataProducts = $normalizer->normalize($products, 'json', ['groups' => ['products', 'pictures'],
         'circular_reference_handler' => function ($object) {
           return $object->getId();
           }
@@ -25,7 +25,7 @@ class ProductService
 
       return $dataProducts;
     } else {
-       $dataProduct = $normalizer->normalize($products, 'json', ['groups', ['products', 'pictures'], 
+       $dataProduct = $normalizer->normalize($products, 'json', ['groups', ['product', 'pictures'],
         'circular_reference_handler' => function ($object) {
           return $object->getId();
       }]);
@@ -39,6 +39,6 @@ class ProductService
       }
 
       return $dataProduct;
-    } 
+    }
   }
 }

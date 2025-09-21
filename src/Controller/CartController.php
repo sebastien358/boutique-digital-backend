@@ -39,7 +39,12 @@ final class CartController extends AbstractController
             }
 
             $items = $cart->getItems();
-            $dataItems = $normalizer->normalize($items, 'json', ['groups' => 'carts']);
+            $dataItems = $normalizer->normalize($items, 'json', [
+                'groups' => ['carts', 'cart-items'],
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
             return new JsonResponse($dataItems, 200);
         } catch(\Throwable $e) {
             $this->logger->error('Erreur de la récupération des produit du panier', ['error' => $e->getMessage()]);
@@ -107,6 +112,9 @@ final class CartController extends AbstractController
         try {
             $user = $this->getUser();
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
+            if (!$cart) {
+                return new JsonResponse(['error' => 'Panier non trouvé'], 404);
+            }
 
             $productExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
             if (!$productExisting) {
@@ -140,16 +148,17 @@ final class CartController extends AbstractController
         try {
             $user = $this->getUser();
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
+            if (!$cart) {
+                return new JsonResponse(['error' => 'Panier non trouvé'], 404);
+            }
 
             $productExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
-            if (!$productExisting) {
-                return new JsonResponse(['error' => 'Produit non existant'], 404);
+            if(!$productExisting){
+                return new JsonResponse(['error' => 'Produit non trouvé'], 404);
             }
 
-            if ($productExisting->getQuantity() > 0) {
-                $productExisting->setQuantity($productExisting->getQuantity() + 1);
-                $this->entityManager->persist($productExisting);
-            }
+            $productExisting->setQuantity($productExisting->getQuantity() + 1);
+            $this->entityManager->persist($productExisting);
 
             try {
                 $this->entityManager->flush();

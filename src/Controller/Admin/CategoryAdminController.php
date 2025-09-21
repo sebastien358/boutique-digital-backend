@@ -31,7 +31,7 @@ final class CategoryAdminController extends AbstractController
       if (!$categories) {
         return new JsonResponse(['message' => 'Catégories introuvales'], 404);
       }
-      $dataCategories = $normalizer->normalize($categories, 'json', ['groups' => 'products']);
+      $dataCategories = $normalizer->normalize($categories, 'json', ['groups' => 'categories']);
       return new JsonResponse($dataCategories, 200);
     } catch(\Throwable $e) {
         $this->logger->error('Erreur de la récupération des catégories', [$e->getMessage()]);

@@ -37,10 +37,10 @@ final class HomeController extends AbstractController
             }
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
-            return new JsonResponse($dataProducts);
+            return new JsonResponse($dataProducts, 200);
         } catch(\Throwable $e) {
             $this->logger->error('Erreur de la récupération des produits : ', [$e->getMessage()]);
-            return new JsonResponse(['error' => 'Erreur interne du server'], 500);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 

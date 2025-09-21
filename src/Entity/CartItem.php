@@ -12,7 +12,7 @@ class CartItem
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups('carts')]
+    #[Groups('cart-items')]
     private $id;
 
     #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'cartItems')]
@@ -24,15 +24,15 @@ class CartItem
     private $product;
 
     #[ORM\Column(type: 'string')]
-    #[Groups('carts')]
+    #[Groups('cart-items')]
     private $title;
 
     #[ORM\Column(type: 'float')]
-    #[Groups('carts')]
+    #[Groups('cart-items')]
     private $price;
 
     #[ORM\Column(type: 'integer')]
-    #[Groups('carts')]
+    #[Groups('cart-items')]
     private $quantity;
 
     public function getId(): ?int

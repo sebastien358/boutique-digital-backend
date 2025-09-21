@@ -14,31 +14,30 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups('products', 'product')]
+    #[Groups(['products', 'product'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 125)]
-    #[Groups('products', 'product')]
+    #[Groups(['products', 'product'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups('products', 'product')]
+    #[Groups(['products', 'product'])]
     private ?string $description = null;
 
     #[ORM\Column(type: "float")]
-    #[Groups('products', 'product')]
+    #[Groups(['products', 'product'])]
     private ?float $price = null;
 
     /**
      * @var Collection<int, Picture>
      */
     #[ORM\OneToMany(targetEntity: Picture::class, mappedBy: 'product', cascade: ['remove'], orphanRemoval: true)]
-    #[Groups('products', 'product')]
+    #[Groups(['products', 'product'])]
     private Collection $pictures;
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups('products', 'product')]
     private Category $category;
 
     #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'product')]
