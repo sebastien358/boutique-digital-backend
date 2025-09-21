@@ -24,7 +24,7 @@ final class CategoryAdminController extends AbstractController
       }
       $dataCategories = $normalizer->normalize($categories, 'json', ['groups' => 'products']);
 
-      return new JsonResponse($dataCategories);
+      return new JsonResponse($dataCategories, 200);
     } catch(\Exception $e) {
       return new JsonResponse(['error' => $e->getMessage()], 500);
     }

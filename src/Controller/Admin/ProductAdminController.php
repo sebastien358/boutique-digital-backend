@@ -10,6 +10,8 @@ use App\Repository\ProductRepository;
 use App\Service\fileUploader;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Doctrine\DBAL\Exception\DBALException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Test\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,15 +28,17 @@ final class ProductAdminController extends AbstractController
     private $entityManager;
     private  $productService;
     private $fileUploader;
+    private $logger;
 
   public function __construct(
       ProductRepository $productRepository, EntityManagerInterface $entityManager,
-      ProductService $productService, fileUploader $fileUploader
+      ProductService $productService, fileUploader $fileUploader, LoggerInterface $logger
   ){
       $this->productRepository = $productRepository;
       $this->entityManager = $entityManager;
       $this->productService = $productService;
       $this->fileUploader = $fileUploader;
+      $this->logger = $logger;
   }
 
   #[Route('/products', methods: ['GET'])]
@@ -70,7 +74,7 @@ final class ProductAdminController extends AbstractController
       $products = $this->productRepository->find($id);
 
       if (!$products) {
-        return new JsonResponse(['message' => 'Les produits sont introuvables']);
+        return new JsonResponse(['message' => 'Le produit est introuvable']);
       }
 
       $dataProduct = $this->productService->getProductData($products, $request, $normalizer);
@@ -98,7 +102,6 @@ final class ProductAdminController extends AbstractController
         if (!empty($images)) {
             foreach ($images as $image) {
                 $newFilename = $this->fileUploader->upload($image);
-
                 $picture = new Picture();
                 $picture->setFilename($newFilename);
                 $picture->setProduct($product);
@@ -107,14 +110,21 @@ final class ProductAdminController extends AbstractController
         }
 
         $this->entityManager->persist($product);
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->flush();
+        } catch(DBALException $e) {
+            $this->logger->error('Le produit n\'a pas pu être ajouté' . $e->getMessage());
+            return new JsonResponse(['error' => 'Erreur interne'], 500);
+        }
 
         return new JsonResponse(['message' => 'Produit ajouté avec succès'], 201);
       } else {
-        return new JsonResponse($this->getErrorMessages($form), 400);
+          $errors = $this->getErrorMessages($form);
+          return new JsonResponse(['errors' => $errors], 400);
       }
-    } catch(\Exception $e) {
-      return new JsonResponse(['error' => $e->getMessage()], 500);
+    } catch(\Throwable $e) {
+      $this->logger->error('Le produit n\'a pas pu être ajouté' . $e->getMessage());
+      return new JsonResponse(['error' => 'Erreur interne'], 500);
     }
   }
 
@@ -143,14 +153,21 @@ final class ProductAdminController extends AbstractController
           }
         }
 
-        $this->entityManager->flush();
-        return new JsonResponse(['message' => 'Produit modifié avec succès'], 201);
+        try {
+            $this->entityManager->flush();
+        } catch(\DBALException $e) {
+            $this->logger->error('Erreur de la modification du produit' . $e->getMessage());
+            return new JsonResponse(['error' => 'Erreur interne'], 500);
+        }
 
+        return new JsonResponse(['message' => 'Produit modifié avec succès'], 201);
       } else {
-        return new JsonResponse($this->getErrorMessages($form), 400);
+          $errors = $this->getErrorMessages($form);
+          return new JsonResponse(['errors' => $errors], 400);
       }
-    } catch(\Exception $e) {
-      return new JsonResponse(['error' => $e->getMessage()], 500);
+    } catch(\Throwable $e) {
+        $this->logger->error('Erreur de la modification du produit' . $e->getMessage());
+        return new JsonResponse(['error' => 'Erreur interne'], 500);
     }
   }
 
@@ -159,9 +176,8 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $product = $this->productRepository->find($id);
-
       if (!$product) {
-        return new JsonResponse(['message' => 'Produit introuvable']);
+        return new JsonResponse(['message' => 'Produit introuvable'], 404);
       }
 
       foreach ($product->getPictures() as $picture) {
@@ -173,11 +189,18 @@ final class ProductAdminController extends AbstractController
       }
 
       $this->entityManager->remove($product);
-      $this->entityManager->flush();
+
+      try {
+          $this->entityManager->flush();
+      } catch(DBALException $e) {
+          $this->logger->error('Erreur de la suppression du produit' . $e->getMessage());
+          return new JsonResponse(['error' => 'Erreur interne'], 500);
+      }
 
       return new JsonResponse(['message' => 'Le produit a bien été supprimé'], 200);
-    } catch(\Exception $e) {
-      return new JsonResponse(['error' => $e->getMessage()], 500);
+    } catch(\Throwable $e) {
+        $this->logger->error('Erreur de la suppression d\'un produit', ['message' => $e->getMessage()]);
+        return new JsonResponse(['error' => $e->getMessage()], 500);
     }
   }
 
@@ -187,16 +210,16 @@ final class ProductAdminController extends AbstractController
     try {
       $product = $this->productRepository->find($productId);
       if (!$product) {
-        return new JsonResponse(['message' => 'Produit introuvable']);
+        return new JsonResponse(['message' => 'Produit introuvable'], 404);
       }
 
       $picture = $pictureRepository->find($pictureId);
       if (!$picture) {
-        return new JsonResponse(['message' => 'Image introuvable']);
+        return new JsonResponse(['message' => 'Image introuvable'], 404);
       }
 
       if ($picture->getProduct()->getId() !== $productId) {
-        return new JsonResponse(['message' => 'L\'image ne correspond pas au produit']);
+        return new JsonResponse(['message' => 'L\'image ne correspond pas au produit'], 404);
       }
 
       $filename = $this->getParameter('images_directory') . '/' . $picture->getFilename();
@@ -207,10 +230,17 @@ final class ProductAdminController extends AbstractController
       $product->removePicture($picture);
       $this->entityManager->remove($picture);
 
-      $this->entityManager->flush();
+      try {
+        $this->entityManager->flush();
+      } catch(DBALException $e) {
+        $this->logger->error('Erreur de la suppression des images du produit', ['message' => $e->getMessage()]);
+        return new JsonResponse(['error' => $e->getMessage()], 500);
+      }
+
       return new JsonResponse(['message' => 'L\'image a bien été supprimée'], 200);
-    } catch(\Exception $e) {
-      return new JsonResponse(['error' => $e->getMessage()], 500);
+    } catch(\Throwable $e) {
+        $this->logger->error('Erreur de la suppression des images du produit', ['message' => $e->getMessage()]);
+        return new JsonResponse(['error' => $e->getMessage()], 500);
     }
   }
 

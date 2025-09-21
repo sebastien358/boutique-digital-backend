@@ -23,7 +23,8 @@ final class RegisterController extends AbstractController
 
     private $logger;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, LoggerInterface $logger)
+    public function __construct(
+        UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->passwordHasher = $passwordHasher;
         $this->entityManager = $entityManager;
