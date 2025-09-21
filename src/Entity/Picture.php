@@ -19,8 +19,9 @@ class Picture
     #[Groups('products', 'product')]
     private ?string $filename = null;
 
-    #[ORM\ManyToOne(inversedBy: 'pictures')]
-    #[Groups('products', 'product')]
+    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'pictures')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[Groups('products', 'product',)]
     private ?Product $product = null;
 
     public function getId(): ?int

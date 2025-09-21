@@ -37,13 +37,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user')]
+    #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user', orphanRemoval: true)]
     private ?Cart $cart;
 
     /**
      * @var Collection<int, Order>
      */
-    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user', cascade: ['remove'], orphanRemoval: true)]
     private Collection $orders;
 
     public function __construct()

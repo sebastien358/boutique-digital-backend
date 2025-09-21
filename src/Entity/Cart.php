@@ -18,7 +18,7 @@ class Cart
     private $id;
 
     #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'cart')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'cascade')]
     #[Groups(['carts'])]
     private $user;
 
