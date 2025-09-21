@@ -102,7 +102,7 @@ final class CartController extends AbstractController
     }
 
     #[Route('/delete/{id}', methods: ['DELETE'])]
-    public function delete(int $id, Request $request): JsonResponse
+    public function deleteItemExisting(int $id): JsonResponse
     {
         try {
             $user = $this->getUser();
@@ -127,9 +127,40 @@ final class CartController extends AbstractController
                 return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
             }
 
-            return new JsonResponse(['success' => true, 'message' => 'Item deleted successfully'], 201);
+            return new JsonResponse(['success' => true, 'message' => 'Item deleted successfully'], 200);
         } catch(\Throwable $e) {
             $this->logger->error('Erreur de la suppression d\'un produit du panier', [$e->getMessage()]);
+            return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
+        }
+    }
+
+    #[Route('/add/{id}', methods: ['POST'])]
+    public function addItemExisting(int $id): JsonResponse
+    {
+        try {
+            $user = $this->getUser();
+            $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
+
+            $productExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
+            if (!$productExisting) {
+                return new JsonResponse(['error' => 'Produit non existant'], 404);
+            }
+
+            if ($productExisting->getQuantity() > 0) {
+                $productExisting->setQuantity($productExisting->getQuantity() + 1);
+                $this->entityManager->persist($productExisting);
+            }
+
+            try {
+                $this->entityManager->flush();
+            } catch(DBALExecption $e) {
+                $this->logger->error('Erreur de l\'ajout  d\'un produit existant au panier', ['error' => $e->getMessage()]);
+                return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
+            }
+
+            return new JsonResponse(['success' => true, 'message' => 'Item added to cart'], 201);
+        } catch(\Throwable $e) {
+            $this->logger->error('Erreur de l\'ajout  d\'un produit existant au panier', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }

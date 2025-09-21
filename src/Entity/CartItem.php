@@ -15,11 +15,11 @@ class CartItem
     #[Groups('carts')]
     private $id;
 
-    #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'items')]
+    #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'cartItems')]
     #[ORM\JoinColumn(nullable: false)]
     private $cart;
 
-    #[ORM\ManyToOne(targetEntity: Product::class)]
+    #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'cartItems')]
     #[ORM\JoinColumn(nullable: false)]
     private $product;
 

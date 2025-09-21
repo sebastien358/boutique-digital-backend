@@ -44,10 +44,14 @@ class Product
     #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'product')]
     private Collection $orderItems;
 
+    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'product')]
+    private Collection $cartItems;
+
     public function __construct()
     {
         $this->pictures = new ArrayCollection();
         $this->orderItems = new ArrayCollection();
+        $this->cartItems = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -139,4 +143,36 @@ class Product
 
         return $this;
     }
+
+    public function getCartItems(): Collection
+    {
+        return $this->cartItems;
+    }
+
+    public function setCartItems(Collection $cartItems): self
+    {
+        $this->cartItems = $cartItems;
+        return $this;
+    }
+
+    public function addCartItem(CartItem $cartItem): self
+    {
+        if (!$this->cartItems->contains($cartItem)) {
+            $this->cartItems[] = $cartItem;
+            $cartItem->setProduct($this);
+        }
+        return $this;
+    }
+
+    public function removeCartItem(CartItem $cartItem): self
+    {
+        if ($this->cartItems->contains($cartItem)) {
+            $this->cartItems->removeElement($cartItem);
+            if ($cartItem->getProduct() === $this) {
+                $cartItem->setProduct(null);
+            }
+        }
+        return $this;
+    }
+
 }
