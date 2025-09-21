@@ -34,9 +34,12 @@ final class CommandController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
             $user = $this->getUser();
+
             $order = new Order();
             $order->setUser($user);
+
             $form = $this->createForm(OrderType::class, $order);
             $form->submit($data);
 
@@ -58,7 +61,7 @@ final class CommandController extends AbstractController
                 try {
                     $entityManager->flush();
                 } catch (DBALException $e) {
-                    $this->logger->error('Erreur de la commande : ', [$e->getMessage()]);
+                    $this->logger->error('Erreur de la commande : ', ['error' => $e->getMessage()]);
                     return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
                 }
 
@@ -68,11 +71,10 @@ final class CommandController extends AbstractController
                 return new JsonResponse(['errors' => $errors], 400);
             }
         } catch (\Throwable $e) {
-            $this->logger->error('Erreur de la commande : ', [$e->getMessage()]);
+            $this->logger->error('Erreur de la commande : ', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }
-
 
     private function getErrorMessages(FormInterface $form): array
     {

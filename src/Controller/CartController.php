@@ -35,7 +35,7 @@ final class CartController extends AbstractController
             $user = $this->getUser();
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
             if (!$cart) {
-                return new JsonResponse([], 200);
+                return new JsonResponse(['message' => 'Le panier n\'existe pas'], 404);
             }
 
             $items = $cart->getItems();
@@ -56,7 +56,7 @@ final class CartController extends AbstractController
     public function new(Request $request): JsonResponse
     {
         try {
-            $data = json_decode($request->getContent(), true);
+            $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
             $user = $this->getUser();
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
@@ -111,6 +111,7 @@ final class CartController extends AbstractController
     {
         try {
             $user = $this->getUser();
+
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
             if (!$cart) {
                 return new JsonResponse(['error' => 'Panier non trouvé'], 404);
