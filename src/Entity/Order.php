@@ -48,10 +48,11 @@ class Order
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['orders', 'order'])]
     private User $user;
 
     #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'order', cascade: ['remove'], orphanRemoval: true)]
-    #[Groups(['order_items'])]
+    #[Groups(['orders', 'order'])]
     private Collection $orderItems;
 
     public function __construct()

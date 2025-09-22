@@ -2,10 +2,11 @@
 
 namespace App\Controller;
 
+use Throwable;
+use Exception;
 use App\Entity\Cart;
 use App\Entity\CartItem;
 use App\Entity\Product;
-use Doctrine\DBAL\Exception\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,7 +48,7 @@ final class CartController extends AbstractController
                 }
             ]);
             return new JsonResponse($dataItems, 200);
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la récupération des produit du panier', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
@@ -95,13 +96,13 @@ final class CartController extends AbstractController
 
             try {
                 $this->entityManager->flush();
-            } catch(DBALException $e) {
+            } catch(Exception $e) {
                 $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier', ['error' => $e->getMessage()]);
                 return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart'], 201);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Erreur lors de l\'ajout d\'un produit au panier', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
@@ -132,13 +133,13 @@ final class CartController extends AbstractController
 
             try {
                 $this->entityManager->flush();
-            } catch(DBALExecption $e) {
+            } catch(Exception $e) {
                 $this->logger->error('Erreur de la suppresion d\'un produit', ['error' => $e->getMessage()]);
                 return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Item deleted successfully'], 200);
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la suppression d\'un produit du panier', [$e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
@@ -164,13 +165,13 @@ final class CartController extends AbstractController
 
             try {
                 $this->entityManager->flush();
-            } catch(DBALExecption $e) {
+            } catch(Exception $e) {
                 $this->logger->error('Erreur de l\'ajout  d\'un produit existant au panier', ['error' => $e->getMessage()]);
                 return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart'], 201);
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de l\'ajout  d\'un produit existant au panier', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }

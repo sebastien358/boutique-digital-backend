@@ -2,12 +2,13 @@
 
 namespace App\Controller;
 
+use Throwable;
+use Exception;
 use App\Entity\Cart;
 use App\Entity\User;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Doctrine\DBAL\Exception\DBALException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Test\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -59,13 +60,13 @@ final class RegisterController extends AbstractController
 
             try {
                 $this->entityManager->flush();
-            } catch (DBALException $e) {
+            } catch (Exception $e) {
                 $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ', ['error' => $e->getMessage()]);
                 return new JsonResponse(['error' => $e->getMessage()], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Inscription réussie'], 201);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Erreur lors de l\'enregistrement de l\'utilisateur : ', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }

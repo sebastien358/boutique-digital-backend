@@ -3,18 +3,19 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Order;
-use App\Repository\CartRepository;
 use App\Repository\OrderRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Throwable;
+use Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
-#[Route('/api/admin/command')]
+#[Route('/api/admin/order')]
 #[IsGranted('ROLE_ADMIN')]
 final class OrderAdminController extends AbstractController
 {
@@ -28,10 +29,14 @@ final class OrderAdminController extends AbstractController
     }
 
     #[Route('/list', methods: ['GET'])]
-    public function commands(SerializerInterface $serializer): JsonResponse
+    public function commands(Request $request, OrderRepository $orderRepository, SerializerInterface $serializer): JsonResponse
     {
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 1);
+
         try {
-            $orders = $this->entityManager->getRepository(Order::class)->findAll();
+            $orders = $orderRepository->findAllOrder($page, $limit);
+            $total = $orderRepository->countAllOrder();
 
             $dataOrders = $serializer->normalize($orders, 'json', [
                 'groups' => ['orders', 'order_items', 'products'],
@@ -39,11 +44,36 @@ final class OrderAdminController extends AbstractController
                     return $object->getId();
                 }
             ]);
-            return new JsonResponse($dataOrders, 200);
-        } catch (\Throwable $e) {
+            return new JsonResponse([
+                'orders' => $dataOrders,
+                'total' =>$total
+            ], 200);
+        } catch (Throwable $e) {
             $this->logger->error('Erreur récupération des commandes', ['message' => $e->getMessage()]);
-            return new JsonResponse(['error' => 'Erreur interne serveur'], 500);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 
+    #[Route('/delete/{id}', methods: ['DELETE'])]
+    public function delete(int $id): JsonResponse
+    {
+        try {
+            $order = $this->entityManager->getRepository(Order::class)->findOneBy(['id' => $id]);
+            if (!$order) {
+                return new JsonResponse(['message' => 'Order not found'], 404);
+            }
+            $this->entityManager->remove($order);
+
+            try {
+                $this->entityManager->flush();
+            } catch (Exception $e) {
+                $this->logger->error('Erreur suppression des commandes', ['message' => $e->getMessage()]);
+                return new JsonResponse(['error' => $e->getMessage()], 500);
+            }
+            return new JsonResponse(['success' => true, 'message' => 'La commande a bien été supprimée'], 200);
+        } catch(Throwable $e) {
+            $this->logger->error('Erreur de la suppressin d\'une commande', ['message' => $e->getMessage()]);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
 }

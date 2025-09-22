@@ -2,11 +2,12 @@
 
 namespace App\Controller;
 
+use Throwable;
+use Exception;
 use App\Entity\Cart;
 use App\Entity\Order;
 use App\Entity\OrderItems;
 use App\Form\OrderType;
-use Doctrine\DBAL\Exception\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,7 +61,7 @@ final class OrderController extends AbstractController
 
                 try {
                     $entityManager->flush();
-                } catch (DBALException $e) {
+                } catch (Exception $e) {
                     $this->logger->error('Erreur de la commande : ', ['error' => $e->getMessage()]);
                     return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
                 }
@@ -70,7 +71,7 @@ final class OrderController extends AbstractController
                 $errors = $this->getErrorMessages($form);
                 return new JsonResponse(['errors' => $errors], 400);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logger->error('Erreur de la commande : ', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }

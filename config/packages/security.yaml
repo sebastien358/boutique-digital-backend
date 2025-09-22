@@ -26,7 +26,7 @@ security:
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/admin, roles: ROLE_ADMIN }
-        - { path: ^/api/admin/command, roles: ROLE_ADMIN }
+        - { path: ^/api/admin/order, roles: ROLE_ADMIN }
         - { path: ^/api/item, roles: ROLE_USER }
         - { path: ^/api/command, roles: ROLE_USER }
         - { path: ^/api/payment, roles: ROLE_USER }

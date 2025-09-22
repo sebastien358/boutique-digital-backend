@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Throwable;
 use App\Repository\UserRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,7 +32,7 @@ final class UserController extends AbstractController
 
             $dataUser = $normalizer->normalize($user, 'json', ['groups' => 'user']);
             return new JsonResponse($dataUser, 200);
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la récupérarion des infos d\'un utilisateur : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
@@ -49,7 +50,7 @@ final class UserController extends AbstractController
             } else {
                 return new JsonResponse(['exists' => false, 'message' => 'Email non valide']);
             }
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la récupérarion des infos d\'un utilisateur : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Throwable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -11,7 +12,7 @@ use Stripe\Stripe;
 
 #[Route('/api')]
 #[IsGranted("ROLE_USER")]
-final class PayementController extends AbstractController
+final class PaymentController extends AbstractController
 {
     #[Route('/payement', methods: ['POST'])]
     public function index(Request $request): JsonResponse
@@ -37,10 +38,9 @@ final class PayementController extends AbstractController
             ]);
 
             return new JsonResponse(['success' => true, 'message' => 'Paiement réussi !']);
-        } catch (\Stripe\Exception\CardException $e) {
+        } catch (Throwable $e) {
+
             return new JsonResponse(['error' => $e->getMessage()], 400);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 }

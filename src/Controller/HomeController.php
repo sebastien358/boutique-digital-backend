@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
+use Throwable;
+use Exception;
 use App\Entity\Product;
-use App\Repository\ProductRepository;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -41,7 +42,7 @@ final class HomeController extends AbstractController
 
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts, 200);
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la récupération des produits : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
@@ -57,7 +58,7 @@ final class HomeController extends AbstractController
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
 
             return new JsonResponse($dataProducts, 200);
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la récupération des produits "search" : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du server'], 500);
         }
@@ -74,7 +75,7 @@ final class HomeController extends AbstractController
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
 
             return new JsonResponse($dataProducts, 200);
-        } catch(\Throwable $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la récupération des produits par "price" : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du server'], 500);
         }
@@ -90,7 +91,7 @@ final class HomeController extends AbstractController
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
 
             return new JsonResponse($dataProducts, 200);
-        } catch(\Exception $e) {
+        } catch(Throwable $e) {
             $this->logger->error('Erreur de la récupération des produits par "catégorie" : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du server'], 500);
         }

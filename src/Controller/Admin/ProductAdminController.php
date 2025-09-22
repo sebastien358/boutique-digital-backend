@@ -2,6 +2,8 @@
 
 namespace App\Controller\Admin;
 
+use Throwable;
+use Exception;
 use App\Entity\Picture;
 use App\Entity\Product;
 use App\Form\ProductType;
@@ -11,7 +13,6 @@ use App\Service\fileUploader;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Doctrine\DBAL\Exception\DBALException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Test\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -47,22 +48,18 @@ final class ProductAdminController extends AbstractController
     try {
       $page = $request->query->getInt('page', 1);
       $limit = $request->query->getInt('limit', 20);
-
       $products = $this->productRepository->findAllProducts($page, $limit);
-
       if (!$products) {
-          return new JsonResponse(['message' => 'Les produits sont introuvables']);
+        return new JsonResponse(['message' => 'Les produits sont introuvables']);
       }
 
       $total = $this->productRepository->countAllProducts();
       $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
-
       return new JsonResponse([
         'products' => $dataProducts,
         'total' => $total
       ]);
-
-    } catch(\Throwable $e) {
+    } catch(Throwable $e) {
         $this->logger->error('Erreur de la récupération des produits', [$e->getMessage()]);
         return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
@@ -73,15 +70,13 @@ final class ProductAdminController extends AbstractController
   {
     try {
       $products = $this->productRepository->find($id);
-
       if (!$products) {
         return new JsonResponse(['message' => 'Le produit est introuvable']);
       }
 
       $dataProduct = $this->productService->getProductData($products, $request, $normalizer);
       return new JsonResponse($dataProduct);
-
-    } catch(\Throwable $e) {
+    } catch(Throwable $e) {
         $this->logger->error('Erreur de la récupération d\'un produit', [$e->getMessage()]);
         return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
@@ -114,7 +109,7 @@ final class ProductAdminController extends AbstractController
         $this->entityManager->persist($product);
         try {
             $this->entityManager->flush();
-        } catch(DBALException $e) {
+        } catch(Exception $e) {
             $this->logger->error('Le produit n\'a pas pu être ajouté' . $e->getMessage());
             return new JsonResponse(['error' => 'Erreur interne'], 500);
         }
@@ -124,7 +119,7 @@ final class ProductAdminController extends AbstractController
           $errors = $this->getErrorMessages($form);
           return new JsonResponse(['errors' => $errors], 400);
       }
-    } catch(\Throwable $e) {
+    } catch(Throwable $e) {
       $this->logger->error('Le produit n\'a pas pu être ajouté' . $e->getMessage());
       return new JsonResponse(['error' => 'Erreur interne'], 500);
     }
@@ -157,7 +152,7 @@ final class ProductAdminController extends AbstractController
 
         try {
             $this->entityManager->flush();
-        } catch(\DBALException $e) {
+        } catch(Exception $e) {
             $this->logger->error('Erreur de la modification du produit' . $e->getMessage());
             return new JsonResponse(['error' => 'Erreur interne'], 500);
         }
@@ -167,7 +162,7 @@ final class ProductAdminController extends AbstractController
           $errors = $this->getErrorMessages($form);
           return new JsonResponse(['errors' => $errors], 400);
       }
-    } catch(\Throwable $e) {
+    } catch(Throwable $e) {
         $this->logger->error('Erreur de la modification du produit' . $e->getMessage());
         return new JsonResponse(['error' => 'Erreur interne'], 500);
     }
@@ -194,13 +189,13 @@ final class ProductAdminController extends AbstractController
 
       try {
           $this->entityManager->flush();
-      } catch(DBALException $e) {
+      } catch(Exception $e) {
           $this->logger->error('Erreur de la suppression du produit' . $e->getMessage());
           return new JsonResponse(['error' => 'Erreur interne'], 500);
       }
 
       return new JsonResponse(['message' => 'Le produit a bien été supprimé'], 200);
-    } catch(\Throwable $e) {
+    } catch(Throwable $e) {
         $this->logger->error('Erreur de la suppression d\'un produit', ['message' => $e->getMessage()]);
         return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
@@ -234,13 +229,13 @@ final class ProductAdminController extends AbstractController
 
       try {
         $this->entityManager->flush();
-      } catch(DBALException $e) {
+      } catch(Exception $e) {
         $this->logger->error('Erreur de la suppression des images du produit', ['message' => $e->getMessage()]);
       return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
       }
 
       return new JsonResponse(['message' => 'L\'image a bien été supprimée'], 200);
-    } catch(\Throwable $e) {
+    } catch(Throwable $e) {
         $this->logger->error('Erreur de la suppression des images du produit', ['message' => $e->getMessage()]);
         return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
     }
