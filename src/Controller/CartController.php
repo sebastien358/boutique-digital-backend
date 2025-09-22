@@ -140,7 +140,7 @@ final class CartController extends AbstractController
 
             return new JsonResponse(['success' => true, 'message' => 'Item deleted successfully'], 200);
         } catch(Throwable $e) {
-            $this->logger->error('Erreur de la suppression d\'un produit du panier', [$e->getMessage()]);
+            $this->logger->error('Erreur de la suppression d\'un produit du panier', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }

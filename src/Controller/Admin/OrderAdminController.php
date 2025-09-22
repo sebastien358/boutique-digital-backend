@@ -31,19 +31,18 @@ final class OrderAdminController extends AbstractController
     #[Route('/list', methods: ['GET'])]
     public function commands(Request $request, OrderRepository $orderRepository, SerializerInterface $serializer): JsonResponse
     {
-        $page = $request->query->getInt('page', 1);
-        $limit = $request->query->getInt('limit', 1);
-
         try {
-            $orders = $orderRepository->findAllOrder($page, $limit);
-            $total = $orderRepository->countAllOrder();
+            $page = $request->query->getInt('page', 1);
+            $limit = $request->query->getInt('limit', 3);
 
+            $orders = $orderRepository->findAllOrder($page, $limit);
             $dataOrders = $serializer->normalize($orders, 'json', [
                 'groups' => ['orders', 'order_items', 'products'],
                 'circular_reference_handler' => function ($object) {
                     return $object->getId();
                 }
             ]);
+            $total = $orderRepository->countAllOrder();
             return new JsonResponse([
                 'orders' => $dataOrders,
                 'total' =>$total

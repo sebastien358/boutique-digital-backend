@@ -36,7 +36,7 @@ final class RegisterController extends AbstractController
     public function register(Request $request): JsonResponse
     {
         try {
-            $data = json_decode($request->getContent(), true);
+            $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
             $user = new User();
             $form = $this->createForm(UserType::class, $user);
             $form->submit($data);

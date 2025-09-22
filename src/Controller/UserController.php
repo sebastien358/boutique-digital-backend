@@ -42,7 +42,7 @@ final class UserController extends AbstractController
     public function emailExists(Request $request, UserRepository $userRepository): JsonResponse
     {
         try {
-            $data = json_decode($request->getContent(), true);
+            $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
             $emailExisting = $userRepository->findOneBy(['email' => $data['email']]);
             if ($emailExisting) {
