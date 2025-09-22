@@ -16,10 +16,12 @@ class CartItem
     private $id;
 
     #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'cartItems')]
+    #[Groups('cart-items')]
     #[ORM\JoinColumn(nullable: false)]
     private $cart;
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'cartItems')]
+    #[Groups('cart-items')]
     #[ORM\JoinColumn(nullable: false)]
     private $product;
 

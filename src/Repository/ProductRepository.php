@@ -15,6 +15,7 @@ class ProductRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Product::class);
     }
+
     public function findLoadProducts(int $offset, int $limit) {
         return $this->createQueryBuilder('p')
             ->setFirstResult($offset)
@@ -24,7 +25,7 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     public function findBySearch($filterSearch)
-    {   
+    {
         $qb = $this->createQueryBuilder('p');
         if (isset($filterSearch['search'])) {
             $qb->andWhere('p.title LIKE :search');
@@ -53,7 +54,7 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    
+
     public function findAllProducts(int $page, int $limit): array
     {
         $offset = ($page - 1) * $limit;

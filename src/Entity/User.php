@@ -152,6 +152,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->orders;
     }
 
+    public function setOrders(Collection $orders): self
+    {
+        $this->orders = $orders;
+
+        return $this;
+    }
+
     public function addOrder(Order $order): static
     {
         if (!$this->orders->contains($order)) {

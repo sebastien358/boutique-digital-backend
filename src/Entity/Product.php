@@ -38,12 +38,15 @@ class Product
 
     #[ORM\ManyToOne(targetEntity: Category::class, inversedBy: 'products')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['products', 'product'])]
     private Category $category;
 
     #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'product')]
+    #[Groups(['products', 'product'])]
     private Collection $orderItems;
 
     #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'product')]
+    #[Groups(['products', 'product'])]
     private Collection $cartItems;
 
     public function __construct()

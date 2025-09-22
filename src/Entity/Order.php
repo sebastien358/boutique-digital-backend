@@ -15,43 +15,42 @@ class Order
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?string $address = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?string $zipCode = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?string $country = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['order'])]
+    #[Groups(['orders', 'order'])]
     private ?string $phoneNumber = null;
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['order'])]
     private User $user;
 
-    #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'order', orphanRemoval: true, cascade: ['persist'])]
+    #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'order', cascade: ['remove'], orphanRemoval: true)]
     #[Groups(['order_items'])]
     private Collection $orderItems;
 

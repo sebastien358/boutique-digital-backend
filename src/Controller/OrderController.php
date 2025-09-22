@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(['/api/command'])]
 #[IsGranted('ROLE_USER')]
-final class CommandController extends AbstractController
+final class OrderController extends AbstractController
 {
     private $entityManager;
     private $logger;

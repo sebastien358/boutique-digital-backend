@@ -28,10 +28,11 @@ final class UserController extends AbstractController
     {
         try {
             $user = $this->getUser();
+
             $dataUser = $normalizer->normalize($user, 'json', ['groups' => 'user']);
             return new JsonResponse($dataUser, 200);
         } catch(\Throwable $e) {
-            $this->logger->error('Erreur de la récupérarion des infos d\'un utilisateur : ', [$e->getMessage()]);
+            $this->logger->error('Erreur de la récupérarion des infos d\'un utilisateur : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }
@@ -49,7 +50,7 @@ final class UserController extends AbstractController
                 return new JsonResponse(['exists' => false, 'message' => 'Email non valide']);
             }
         } catch(\Throwable $e) {
-            $this->logger->error('Erreur de la récupérarion des infos d\'un utilisateur : ', [$e->getMessage()]);
+            $this->logger->error('Erreur de la récupérarion des infos d\'un utilisateur : ', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }

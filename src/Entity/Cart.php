@@ -19,9 +19,11 @@ class Cart
 
     #[ORM\OneToOne(targetEntity: User::class, inversedBy: 'cart')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'cascade')]
+    #[Groups(['carts'])]
     private $user;
 
     #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'cart', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[Groups(['carts'])]
     private $items;
 
     public function __construct()

@@ -33,6 +33,7 @@ final class CartController extends AbstractController
     {
         try {
             $user = $this->getUser();
+
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
             if (!$cart) {
                 return new JsonResponse(['message' => 'Le panier n\'existe pas'], 404);

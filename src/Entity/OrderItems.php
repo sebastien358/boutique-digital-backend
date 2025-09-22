@@ -12,25 +12,25 @@ class OrderItems
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['order-items'])]
+    #[Groups(['order_items'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'orderItems')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['order-items'])]
+    #[Groups(['order_items'])]
     private Order $order;
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'orderItems')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['order-items'])]
+    #[Groups(['order_items'])]
     private Product $product;
 
     #[ORM\Column]
-    #[Groups(['order-items'])]
+    #[Groups(['order_items'])]
     private int $quantity;
 
     #[ORM\Column]
-    #[Groups(['order-items'])]
+    #[Groups(['order_items'])]
     private float $price;
 
     public function getId(): ?int
