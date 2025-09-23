@@ -28,7 +28,7 @@ security:
         - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api/admin/order, roles: ROLE_ADMIN }
         - { path: ^/api/item, roles: ROLE_USER }
-        - { path: ^/api/command, roles: ROLE_USER }
+        - { path: ^/api/order, roles: ROLE_USER }
         - { path: ^/api/payment, roles: ROLE_USER }
         - { path: ^/api/user/me, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/, roles: PUBLIC_ACCESS }

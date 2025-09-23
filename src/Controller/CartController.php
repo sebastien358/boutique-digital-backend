@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/item')]
 #[IsGranted('ROLE_USER')]
@@ -30,7 +30,7 @@ final class CartController extends AbstractController
     }
 
     #[Route('/list', methods: ['GET'])]
-    public function cartItems(NormalizerInterface $normalizer): JsonResponse
+    public function cartItems(SerializerInterface $serializer): JsonResponse
     {
         try {
             $user = $this->getUser();
@@ -41,8 +41,7 @@ final class CartController extends AbstractController
             }
 
             $items = $cart->getItems();
-            $dataItems = $normalizer->normalize($items, 'json', [
-                'groups' => ['carts', 'cart-items'],
+            $dataItems = $serializer->normalize($items, 'json', ['groups' => ['carts', 'cart-items'],
                 'circular_reference_handler' => function ($object) {
                     return $object->getId();
                 }
@@ -150,31 +149,34 @@ final class CartController extends AbstractController
     {
         try {
             $user = $this->getUser();
+
             $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
             if (!$cart) {
-                return new JsonResponse(['error' => 'Panier non trouvé'], 404);
+                return new JsonResponse(['error' => 'Panier inexistant'], 404);
             }
 
-            $productExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
-            if(!$productExisting){
-                return new JsonResponse(['error' => 'Produit non trouvé'], 404);
+            $cartItemExisting = $this->entityManager->getRepository(CartItem::class)->findOneBy(['cart' => $cart, 'id' => $id]);
+            if (!$cartItemExisting) {
+                return new JsonResponse(['error' => 'produit inexistant'], 404);
             }
 
-            $productExisting->setQuantity($productExisting->getQuantity() + 1);
-            $this->entityManager->persist($productExisting);
+            $cartItemExisting->setQuantity($cartItemExisting->getQuantity() + 1);
+            $this->entityManager->persist($cartItemExisting);
 
             try {
                 $this->entityManager->flush();
             } catch(Exception $e) {
-                $this->logger->error('Erreur de l\'ajout  d\'un produit existant au panier', ['error' => $e->getMessage()]);
+                $this->logger->error('Erreur : ajout d\'un produit du panier', ['error' => $e->getMessage()]);
                 return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
             }
 
             return new JsonResponse(['success' => true, 'message' => 'Item added to cart'], 201);
         } catch(Throwable $e) {
-            $this->logger->error('Erreur de l\'ajout  d\'un produit existant au panier', ['error' => $e->getMessage()]);
+            $this->logger->error('Erreur : ajout d\'un produit du panier', ['error' => $e->getMessage()]);
             return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
         }
     }
+
+
 }
 

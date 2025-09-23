@@ -2,11 +2,10 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Order;
-use App\Repository\OrderRepository;
-use Symfony\Component\HttpFoundation\Request;
 use Throwable;
 use Exception;
+use App\Entity\Order;
+use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,20 +28,19 @@ final class OrderAdminController extends AbstractController
     }
 
     #[Route('/list', methods: ['GET'])]
-    public function commands(Request $request, OrderRepository $orderRepository, SerializerInterface $serializer): JsonResponse
+    public function commands(Request $request, SerializerInterface $serializer): JsonResponse
     {
         try {
             $page = $request->query->getInt('page', 1);
             $limit = $request->query->getInt('limit', 3);
 
-            $orders = $orderRepository->findAllOrder($page, $limit);
-            $dataOrders = $serializer->normalize($orders, 'json', [
-                'groups' => ['orders', 'order_items', 'products'],
+            $orders = $this->entityManager->getRepository(Order::class)->findAllOrder($page, $limit);
+            $dataOrders = $serializer->normalize($orders, 'json', ['groups' => ['orders', 'order_items', 'products'],
                 'circular_reference_handler' => function ($object) {
                     return $object->getId();
                 }
             ]);
-            $total = $orderRepository->countAllOrder();
+            $total = $this->entityManager->getRepository(Order::class)->countAllOrder();
             return new JsonResponse([
                 'orders' => $dataOrders,
                 'total' =>$total
@@ -69,6 +67,7 @@ final class OrderAdminController extends AbstractController
                 $this->logger->error('Erreur suppression des commandes', ['message' => $e->getMessage()]);
                 return new JsonResponse(['error' => $e->getMessage()], 500);
             }
+
             return new JsonResponse(['success' => true, 'message' => 'La commande a bien été supprimée'], 200);
         } catch(Throwable $e) {
             $this->logger->error('Erreur de la suppressin d\'une commande', ['message' => $e->getMessage()]);

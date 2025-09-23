@@ -17,18 +17,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(["user"])]
+    #[Groups(['user'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(["user"])]
+    #[Groups(['user'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(["user"])]
+    #[Groups(['user'])]
     private array $roles = [];
 
     /**
@@ -38,14 +38,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user', orphanRemoval: true)]
-    #[Groups(["user"])]
-    private ?Cart $cart;
+    #[Groups(['user'])]
+    private $cart;
 
     /**
      * @var Collection<int, Order>
      */
     #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user', cascade: ['remove'], orphanRemoval: true)]
-    #[Groups(["user"])]
+    #[Groups(['user'])]
     private Collection $orders;
 
     public function __construct()
@@ -134,12 +134,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // @deprecated, to be removed when upgrading to Symfony 8
     }
 
-    public function getCart(): ?Cart
+    public function getCart(): Cart
     {
         return $this->cart;
     }
 
-    public function setCart(?Cart $cart): self
+    public function setCart(Cart $cart): self
     {
         $this->cart = $cart;
 
