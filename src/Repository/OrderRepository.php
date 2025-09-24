@@ -51,7 +51,7 @@ class OrderRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('o')
             ->where('o.user = :user')
             ->setParameter('user', $user)
-            ->select('COUNT(o)')
+            ->select('COUNT(o.id)')
             ->getQuery()
             ->getSingleScalarResult();
     }

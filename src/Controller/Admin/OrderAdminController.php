@@ -46,7 +46,7 @@ final class OrderAdminController extends AbstractController
                 'total' =>$total
             ], 200);
         } catch (Throwable $e) {
-            $this->logger->error('Erreur récupération des commandes', ['message' => $e->getMessage()]);
+            $this->logger->error('Error retrieving order', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
@@ -64,13 +64,13 @@ final class OrderAdminController extends AbstractController
             try {
                 $this->entityManager->flush();
             } catch (Exception $e) {
-                $this->logger->error('Erreur suppression des commandes', ['message' => $e->getMessage()]);
+                $this->logger->error('Error delete order', ['message' => $e->getMessage()]);
                 return new JsonResponse(['error' => $e->getMessage()], 500);
             }
 
-            return new JsonResponse(['success' => true, 'message' => 'La commande a bien été supprimée'], 200);
+            return new JsonResponse(['success' => true, 'message' => 'Success order delete'], 200);
         } catch(Throwable $e) {
-            $this->logger->error('Erreur de la suppressin d\'une commande', ['message' => $e->getMessage()]);
+            $this->logger->error('Error delete order', ['message' => $e->getMessage()]);
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }

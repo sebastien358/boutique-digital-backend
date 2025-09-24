@@ -37,7 +37,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user', orphanRemoval: true)]
+    #[ORM\OneToOne(targetEntity: Cart::class, mappedBy: 'user', cascade: ['remove'] , orphanRemoval: true)]
     #[Groups(['user'])]
     private $cart;
 
@@ -168,6 +168,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $order->setUser($this);
         }
 
+        return $this;
+    }
+
+    public function removeCart(): self
+    {
+        $this->cart = null;
         return $this;
     }
 

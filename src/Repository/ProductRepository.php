@@ -54,12 +54,10 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-
     public function findAllProducts(int $page, int $limit): array
     {
-        $offset = ($page - 1) * $limit;
         return $this->createQueryBuilder('p')
-            ->setFirstResult($offset)
+            ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

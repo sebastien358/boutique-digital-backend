@@ -41,11 +41,11 @@ class Product
     #[Groups(['products', 'product'])]
     private Category $category;
 
-    #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'product')]
+    #[ORM\OneToMany(targetEntity: OrderItems::class, mappedBy: 'product', cascade: ['remove'], orphanRemoval: true)]
     #[Groups(['products', 'product'])]
     private Collection $orderItems;
 
-    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'product')]
+    #[ORM\OneToMany(targetEntity: CartItem::class, mappedBy: 'product', cascade: ['remove'], orphanRemoval: true)]
     #[Groups(['products', 'product'])]
     private Collection $cartItems;
 

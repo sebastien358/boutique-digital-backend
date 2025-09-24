@@ -36,6 +36,7 @@ final class OrderController extends AbstractController
     {
         try {
             $user = $this->getUser();
+
             $page = $request->query->get('page', 1);
             $limit = $request->query->get('limit', 3);
 
@@ -64,7 +65,7 @@ final class OrderController extends AbstractController
     }
 
     #[Route('/new', methods: ['POST'])]
-    public function index(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
             $data = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
@@ -78,35 +79,35 @@ final class OrderController extends AbstractController
             $form->submit($data);
 
             if ($form->isSubmitted() && $form->isValid()) {
-                $cart = $entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
-                $cartItems = $cart->getItems();
-                foreach ($cartItems as $item) {
-                    $orderItem = new OrderItems();
-                    $orderItem->setProduct($item->getProduct());
-                    $orderItem->setQuantity($item->getQuantity());
-                    $orderItem->setPrice($item->getPrice());
-                    $orderItem->setOrder($order);
-                    $order->addOrderItem($orderItem);
-                    $entityManager->persist($orderItem);
+                $cart = $this->entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
+                $items = $cart->getItems();
+                foreach ($items as $item) {
+                    $orderItems = new OrderItems();
+                    $orderItems->setProduct($item->getProduct());
+                    $orderItems->setPrice($item->getPrice());
+                    $orderItems->setQuantity($item->getQuantity());
+                    $orderItems->setOrder($order);
+                    $this->entityManager->persist($orderItems);
+                    $this->entityManager->remove($item);
                 }
 
-                $entityManager->persist($order);
+                $this->entityManager->persist($order);
 
                 try {
-                    $entityManager->flush();
-                } catch (Exception $e) {
-                    $this->logger->error('Erreur de la commande : ', ['error' => $e->getMessage()]);
-                    return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
+                    $this->entityManager->flush();
+                } catch(Exception $e) {
+                    $this->logger->error('Error add order', ['error' => $e->getMessage()]);
+                    return new JsonResponse(['error' => $e->getMessage()], 500);
                 }
-
-                return new JsonResponse(['success' => true, 'message' => 'Commande créée avec succès'], 201);
             } else {
                 $errors = $this->getErrorMessages($form);
-                return new JsonResponse(['errors' => $errors], 400);
+                return new JsonResponse(['error' => $errors], 500);
             }
+
+            return new JsonResponse(['success' => true, 'message' => 'Add order'], 201);
         } catch (Throwable $e) {
-            $this->logger->error('Erreur de la commande : ', ['error' => $e->getMessage()]);
-            return new JsonResponse(['error' => 'Erreur interne du serveur'], 500);
+            $this->logger->error('Error add order', ['error' => $e->getMessage()]);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 
