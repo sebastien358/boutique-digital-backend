@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route(['/api/order'])]
 #[IsGranted('ROLE_USER')]
@@ -28,6 +29,38 @@ final class OrderController extends AbstractController
     {
         $this->entityManager = $entityManager;
         $this->logger = $logger;
+    }
+
+    #[Route('/list', methods: ['GET'])]
+    public function list(Request $request, SerializerInterface $serializer): JsonResponse
+    {
+        try {
+            $user = $this->getUser();
+            $page = $request->query->get('page', 1);
+            $limit = $request->query->get('limit', 3);
+
+            $orders = $this->entityManager->getRepository(Order::class)->findOrdersByUserPaginated($user, $page, $limit);
+            if (!$orders) {
+                return new JsonResponse(['message' => 'Le panier est vide'], 404);
+            }
+
+            $dataOrders = $serializer->normalize($orders, 'json', ['groups' => [
+                'orders', 'order_items', 'products'],
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+
+            $totalOrders = $this->entityManager->getRepository(Order::class)->countOrdersByUserPaginated($user);
+
+            return new JsonResponse([
+                'orders' => $dataOrders,
+                'total' => $totalOrders,
+            ], 200);
+        } catch (Throwable $e) {
+            $this->logger->error('error de la récupération des commandes', ['message' => $e->getMessage()]);
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
     }
 
     #[Route('/new', methods: ['POST'])]

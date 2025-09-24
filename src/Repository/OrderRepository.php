@@ -35,6 +35,27 @@ class OrderRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function findOrdersByUserPaginated($user, int $page, int $limit)
+    {
+        return $this->createQueryBuilder('o')
+            ->where('o.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('o.id', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countOrdersByUserPaginated($user)
+    {
+        return $this->createQueryBuilder('o')
+            ->where('o.user = :user')
+            ->setParameter('user', $user)
+            ->select('COUNT(o)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 
     //    /**
     //     * @return Order[] Returns an array of Order objects

@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use Throwable;
-use Exception;
 use App\Entity\Product;
 use App\Service\ProductService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,7 +38,6 @@ final class HomeController extends AbstractController
             if (!$products) {
                 return new JsonResponse(['message' => 'Products not found'], 404);
             }
-
             $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
             return new JsonResponse($dataProducts, 200);
         } catch(Throwable $e) {
