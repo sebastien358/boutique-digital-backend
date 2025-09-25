@@ -50,6 +50,7 @@ final class ProductAdminController extends AbstractController
 
       $total = $this->entityManager->getRepository(Product::class)->countAllProducts();
       $dataProducts = $this->productService->getProductData($products, $request, $normalizer);
+
       return new JsonResponse([
         'products' => $dataProducts,
         'total' => $total
@@ -99,8 +100,8 @@ final class ProductAdminController extends AbstractController
                 $this->entityManager->persist($picture);
             }
         }
-
         $this->entityManager->persist($product);
+
         try {
             $this->entityManager->flush();
         } catch(Exception $e) {

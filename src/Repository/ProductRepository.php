@@ -16,7 +16,8 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
-    public function findLoadProducts(int $offset, int $limit) {
+    public function findLoadProducts(int $offset, int $limit)
+    {
         return $this->createQueryBuilder('p')
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -24,14 +25,13 @@ class ProductRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findBySearch($filterSearch)
+    public function findBySearch(string $search)
     {
-        $qb = $this->createQueryBuilder('p');
-        if (isset($filterSearch['search'])) {
-            $qb->andWhere('p.title LIKE :search');
-            $qb->setParameter('search', '%' . $filterSearch['search'] . '%');
-            return $qb->getQuery()->getResult();
-        }
+        return $this->createQueryBuilder('p')
+            ->andWhere('LOWER(p.title) LIKE :search')
+            ->setParameter('search', '%' . strtolower($search) . '%')
+            ->getQuery()
+            ->getResult();
     }
 
     public function findByPrice(int $minPrice, int $maxPrice)
@@ -65,9 +65,9 @@ class ProductRepository extends ServiceEntityRepository
 
     public function countAllProducts() {
         return $this->createQueryBuilder('p')
-        ->select('count(p)')
-        ->getQuery()
-        ->getSingleScalarResult();
+            ->select('count(p)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     //    /**

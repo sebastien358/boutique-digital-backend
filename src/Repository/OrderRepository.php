@@ -56,7 +56,6 @@ class OrderRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-
     //    /**
     //     * @return Order[] Returns an array of Order objects
     //     */
